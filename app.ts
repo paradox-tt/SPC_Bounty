@@ -1,32 +1,204 @@
+import type { SignedBlock, Header, BlockHash } from '@polkadot/types/interfaces';
+import type { HeaderExtended } from '@polkadot/api-derive/types';
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { BlockLimits } from './interfaces';
+import { BlockInfo, BlockLimits } from './types';
+import * as Constants from './constants'
+import "@polkadot/api-augment";
+import { StatemineData } from './classes';
 
-const main = async () => {
-    //Statemine WSS
-    const wsProviderStatemine = new WsProvider('wss://rpc.polkadot.io');
-    const statemine_api = await ApiPromise.create({ provider: wsProviderStatemine })
-    //Kusama WSS
-    const wsProviderKusama = new WsProvider('wss://rpc.polkadot.io');
-    const kusama_api = await ApiPromise.create({ provider: wsProviderKusama })
-
-    const statemine_block_limits = await getStartAndEndBlocks(3, 2023, statemine_api);
-
-    const kusama_block_limits = await getStartAndEndBlocks(3, 2023, kusama_api);
-    console.log(kusama_block_limits);
-}
-
-const getStartAndEndBlocks = async (month: number, year: number, api: ApiPromise): Promise<BlockLimits> => {
-    //Get current block
-
-    //Loop backward until the first block of the desired month is retrieved
-    //This block is the end
-
-    //Loop backward from the end block until the month changes
-    //When this occurs, the block before is the 1st block of the month
-
-
-
-    return { start: 1, end: 2 };
-}
 
 main();
+
+async function main() {
+    //Statemine WSS
+    const wsProviderStatemine = new WsProvider(Constants.STATEMINE_WSS);
+    const statemine_api = await ApiPromise.create({ provider: wsProviderStatemine });
+    //Kusama WSS
+    const wsProviderKusama = new WsProvider(Constants.KUSAMA_WSS);
+    const kusama_api = await ApiPromise.create({ provider: wsProviderKusama });
+    const cliProgress = require('cli-progress');
+
+    const month = getInputVariable('Enter month', 1, 12);
+    const year = getInputVariable('Enter year', new Date().getFullYear(), null);
+
+    var statemine_limit: BlockLimits = { start: 0, end: 0 };
+    var kusama_limit: BlockLimits = { start: 0, end: 0 };
+
+    console.log(`Calculating block limits.`);
+    await Promise.all([
+        getFirstBlockForMonth(month, year, statemine_api, Constants.STATEMINE_BLOCK_TIME),
+        getLastBlockForMonth(month, year, statemine_api, Constants.STATEMINE_BLOCK_TIME),
+        getFirstBlockForMonth(month, year, kusama_api, Constants.KUSAMA_BLOCK_TIME),
+        getLastBlockForMonth(month, year, kusama_api, Constants.KUSAMA_BLOCK_TIME)
+    ]).then(result => {
+        statemine_limit.start = result[0],
+            statemine_limit.end = result[0]+2500,
+            kusama_limit.start = result[2],
+            kusama_limit.end = result[3]
+    });
+
+    const multibar = new cliProgress.MultiBar({
+        clearOnComplete: false,
+        hideCursor: true,
+        format: ' {bar} | {filename} | {value}/{total}',
+    }, cliProgress.Presets.shades_grey);
+
+    console.log(`Block limit calculations completed.`);
+    console.log(`Statemine: start => ${statemine_limit.start} end => ${statemine_limit.end}`);
+    console.log(`Kusama: start => ${kusama_limit.start} end => ${kusama_limit.end}`);
+
+    console.log(`Collecting block data for Statemine collators.`);
+
+    var statemine_block_promises = [];
+
+    for (var i = statemine_limit.start; i < statemine_limit.end; i += Constants.PARALLEL_INCREMENTS) {
+        var start = i;
+        var end = start + Constants.PARALLEL_INCREMENTS;
+        statemine_block_promises.push(getPartialBlockInfo(start, end, statemine_api, multibar));
+
+        //If the next increment would exceed the end, then initiate it here
+        if (end + Constants.PARALLEL_INCREMENTS > statemine_limit.end) {
+            statemine_block_promises.push(getPartialBlockInfo(end, statemine_limit.end, statemine_api, multibar));
+        }
+    }
+
+    console.log(`Processing each block`)
+    const statemine_data = new StatemineData();
+
+    await Promise.all(statemine_block_promises).then(results => {
+        for (var i = 0; i < statemine_block_promises.length; i++)
+            for (var j = 0; j < results[i].length; j++)
+                statemine_data.addData(results[i][j]);
+    });
+    multibar.stop();
+
+    console.log(statemine_data.getCollators());
+
+    process.exit(0);
+
+    //console.log(`Completed`);
+}
+
+async function getPartialBlockInfo(start: number, end: number, api: ApiPromise, multibar: any): Promise<BlockInfo[]> {
+
+    const statemine_data_extract_progress = multibar.create(end - start, 0);
+    statemine_data_extract_progress.increment();
+
+    var statemine_block_data: BlockInfo[] = [];
+
+    for (var i = start; i < end; i++) {
+        const statemeine_block_info = await getBlockInfo(api, i);
+        statemine_block_data.push(statemeine_block_info);
+        statemine_data_extract_progress.update(i - start, { filename: `Block: ${i}` });
+    }
+
+    statemine_data_extract_progress.update(end - start, { filename: `DONE` });
+
+    statemine_data_extract_progress.stop();
+
+    return statemine_block_data;
+}
+
+async function getLastBlockForMonth(month: number, year: number, api: ApiPromise, block_time: number): Promise<number> {
+    //Javascript months start at 0
+    month--;
+    //Get current block
+    var header: Header = await api.rpc.chain.getHeader();
+    var current_block = header.number.toNumber()
+    var block_info = await getBlockInfo(api, current_block);
+
+    //Make a guess as to the last block of the month
+    var block_difference = estimateBlockDifference(month, year, new Date(), new Date(Number(new Date(year, month + 1, 1)) - 1), block_time);
+    while (Math.abs(block_difference) > 50) {
+        current_block = current_block - block_difference;
+        block_info = await getBlockInfo(api, current_block);
+        block_difference = estimateBlockDifference(month, year, block_info.date, new Date(Number(new Date(year, month + 1, 1)) - 1), block_time);
+    }
+
+    //If we jumped to far behind then increment blocks to find the last of the month
+    if (block_info.date.getMonth() <= month && block_info.date.getFullYear() <= year) {
+        //Compensate for time difference
+        current_block += ((60 * 60) / Constants.STATEMINE_BLOCK_TIME) - 50;
+        while (new Date(Number(block_info.date) - (60 * 60 * 1000)).getMonth() == month) {
+            block_info = await getBlockInfo(api, ++current_block);
+        }
+    } else {
+        while (new Date(Number(block_info.date)).getMonth() > month) {
+            block_info = await getBlockInfo(api, current_block--);
+        }
+    }
+
+    return block_info.number;
+}
+
+async function getFirstBlockForMonth(month: number, year: number, api: ApiPromise, block_time: number): Promise<number> {
+    //Javascript months start at 0
+    month--;
+    //Get current block
+    var header: Header = await api.rpc.chain.getHeader();
+    var current_block = header.number.toNumber()
+    var block_info = await getBlockInfo(api, current_block);
+
+    //Make a guess as to the last block of the month
+    var block_difference = estimateBlockDifference(month, year, new Date(), new Date(year, month, 1), block_time);
+    while (Math.abs(block_difference) > 50) {
+        current_block = current_block - block_difference;
+        block_info = await getBlockInfo(api, current_block);
+        block_difference = estimateBlockDifference(month, year, block_info.date, new Date(year, month, 1), block_time);
+    }
+
+    //If we jumped to far behind then increment blocks to find the last of the month
+    if (block_info.date.getMonth() >= month && block_info.date.getFullYear() >= year) {
+        //Compensate for time difference
+        //current_block -= ((60 * 60) / Constants.STATEMINE_BLOCK_TIME) - 50;
+        while (new Date(Number(block_info.date)).getMonth() >= month && block_info.date.getFullYear() >= year) {
+            block_info = await getBlockInfo(api, current_block--);
+        }
+    } else {
+        while (new Date(Number(block_info.date)).getMonth() < month) {
+            block_info = await getBlockInfo(api, current_block++);
+        }
+    }
+
+    return block_info.number;
+}
+
+function estimateBlockDifference(month: number, year: number, current_date: Date, target_date: Date, block_time: number): number {
+
+    var block_difference = Math.floor((Number(current_date) - Number(target_date)) / (block_time * 1000));
+
+    return block_difference;
+}
+
+function getInputVariable(input_text: string, min_value: number, max_value: number | null): number {
+    const prompt = require('prompt-sync')({ sigint: true });
+    var result;
+    do {
+        result = (max_value == null) ?
+            prompt(`${input_text} [>=${min_value}] =>`) :
+            prompt(`${input_text} [${min_value}-${max_value}] =>`);
+
+    } while (
+        Number.isNaN(Number(result)) ||
+        Number(result) < min_value ||
+        (max_value != null && Number(result) > max_value)
+    )
+
+    return Number(result);
+}
+
+async function getBlockInfo(api: ApiPromise, block: number): Promise<BlockInfo> {
+
+    const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
+
+    const api_at = await api.at(blockhash);
+    const time = await api_at.query.timestamp.now();
+    const header: HeaderExtended = await api.derive.chain.getHeader(blockhash);
+
+    return {
+        hash: blockhash.toString(),
+        number: block,
+        date: new Date(time.toNumber()),
+        author: header.author!.toString()
+    }
+}
