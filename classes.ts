@@ -24,9 +24,7 @@ export class StatemineData {
                 this.collators.push(
                     {
                         collator: info.author,
-                        number_of_blocks: 1,
-                        reward: 0,
-                        max:0
+                        number_of_blocks: 1
                     }
                 );
             }
@@ -35,7 +33,7 @@ export class StatemineData {
         this.previous_blocks.push(info.number);
     }
 
-    private getMaxBlocks(): number {
+    public getMaxBlocks(): number {
         var max = 0;
 
         for (var i = 0; i < this.collators.length; i++) {
@@ -48,16 +46,16 @@ export class StatemineData {
     }
 
     public getCollators(): CollatorData[] {
-        const max_blocks: number = this.getMaxBlocks();
-
-        for (var i = 0; i < this.collators.length; i++) {
-            this.collators[i].reward = (this.collators[i].number_of_blocks / max_blocks) * Constants.COLLATOR_REWARD;
-            this.collators[i].max = max_blocks;
-        }
-
         return this.collators;
     }
 
+}
+
+export class RewardData{
+
+    public constructor(){
+
+    }
 
 
 }

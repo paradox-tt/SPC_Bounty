@@ -12,7 +12,11 @@ export interface BlockInfo {
 
 export interface CollatorData{
     collator:string,
-    number_of_blocks:number,
-    reward:number,
-    max:number
+    number_of_blocks:number
+}
+
+export interface EraBlock{
+    era:number,
+    block:number,
+    blockhash:string
 }

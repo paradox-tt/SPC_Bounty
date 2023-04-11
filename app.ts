@@ -1,11 +1,12 @@
 import type { SignedBlock, Header, BlockHash } from '@polkadot/types/interfaces';
 import type { HeaderExtended } from '@polkadot/api-derive/types';
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { BlockInfo, BlockLimits } from './types';
+import { BlockInfo, BlockLimits, EraBlock } from './types';
 import * as Constants from './constants'
-import "@polkadot/api-augment";
 import { StatemineData } from './classes';
-
+import "@polkadot/api-augment";
+import { start } from 'repl';
+import { BN } from 'bn.js';
 
 main();
 
@@ -32,7 +33,7 @@ async function main() {
         getLastBlockForMonth(month, year, kusama_api, Constants.KUSAMA_BLOCK_TIME)
     ]).then(result => {
         statemine_limit.start = result[0],
-            statemine_limit.end = result[0]+2500,
+            statemine_limit.end = result[1],
             kusama_limit.start = result[2],
             kusama_limit.end = result[3]
     });
@@ -48,35 +49,107 @@ async function main() {
     console.log(`Kusama: start => ${kusama_limit.start} end => ${kusama_limit.end}`);
 
     console.log(`Collecting block data for Statemine collators.`);
-
-    var statemine_block_promises = [];
-
-    for (var i = statemine_limit.start; i < statemine_limit.end; i += Constants.PARALLEL_INCREMENTS) {
-        var start = i;
-        var end = start + Constants.PARALLEL_INCREMENTS;
-        statemine_block_promises.push(getPartialBlockInfo(start, end, statemine_api, multibar));
-
-        //If the next increment would exceed the end, then initiate it here
-        if (end + Constants.PARALLEL_INCREMENTS > statemine_limit.end) {
-            statemine_block_promises.push(getPartialBlockInfo(end, statemine_limit.end, statemine_api, multibar));
+    /*
+        var statemine_block_promises = [];
+    
+        for (var i = statemine_limit.start; i < statemine_limit.end; i += Constants.PARALLEL_INCREMENTS) {
+            var start = i;
+            var end = start + Constants.PARALLEL_INCREMENTS;
+            statemine_block_promises.push(getPartialBlockInfo(start, end, statemine_api, multibar));
+    
+            //If the next increment would exceed the end, then initiate it here
+            if (end + Constants.PARALLEL_INCREMENTS > statemine_limit.end) {
+                statemine_block_promises.push(getPartialBlockInfo(end, statemine_limit.end, statemine_api, multibar));
+            }
         }
-    }
+    
+        console.log(`Processing each block`)
+        const statemine_data = new StatemineData();
+    
+        await Promise.all(statemine_block_promises).then(results => {
+            for (var i = 0; i < statemine_block_promises.length; i++)
+                for (var j = 0; j < results[i].length; j++)
+                    statemine_data.addData(results[i][j]);
+        });
+        multibar.stop();
+    
+        console.log(statemine_data.getCollators());
+    */
 
-    console.log(`Processing each block`)
-    const statemine_data = new StatemineData();
+    await getEraInfo(kusama_limit.start, kusama_limit.end, kusama_api, multibar);
 
-    await Promise.all(statemine_block_promises).then(results => {
-        for (var i = 0; i < statemine_block_promises.length; i++)
-            for (var j = 0; j < results[i].length; j++)
-                statemine_data.addData(results[i][j]);
-    });
-    multibar.stop();
 
-    console.log(statemine_data.getCollators());
 
     process.exit(0);
 
     //console.log(`Completed`);
+}
+
+async function getEraInfo(start: number, end: number, api: ApiPromise, multibar: any): Promise<EraBlock[]> {
+
+    var era_data: EraBlock[] = [];
+
+    const kusama_data_extract_progress = multibar.create(end - start, 0);
+    kusama_data_extract_progress.increment();
+
+
+    for (var block = start; block < end; block += 1800) {
+
+        const era_data_at_block = await getEraInfoFromBlock(api, block);
+
+        //Only add if the era was not already added
+        if (!era_data.find(x => x.era == era_data_at_block.era))
+            era_data.push(era_data_at_block);
+
+        if (era_data.length > 1) {
+            var record = era_data[era_data.length - 1];
+            const eraRewards = await getRewardInfoFromBlock(api, record.blockhash, record.era - 1);
+
+        }
+        kusama_data_extract_progress.update(block - start, { filename: `Block: ${block}` });
+
+    }
+
+    console.log(era_data);
+    console.log(era_data.length);
+    //kusama_data_extract_progress.update(end - start, { filename: `DONE` });
+
+    kusama_data_extract_progress.stop();
+
+    return era_data;
+
+}
+
+async function getEraInfoFromBlock(api: ApiPromise, block: number): Promise<EraBlock> {
+    const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
+
+    const api_at = await api.at(blockhash);
+    const active_era = await api_at.query.staking.activeEra();
+    const index = active_era.unwrapOrDefault().index.toNumber();
+
+    var era_obj: EraBlock = {
+        era: index,
+        block: block,
+        blockhash: blockhash.toString()
+    };
+
+    return era_obj;
+}
+
+async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: number) {
+    const api_at = await api.at(blockhash);
+
+    const erasStakers = await api_at.query.staking.erasStakers.entries(era);
+    const erasValidatorReward = await api_at.query.staking.erasValidatorReward(era);
+
+    var total_stake = new BN(0);
+    var divisor = new BN(1000000000000);
+
+    for (var i = 0; i < erasStakers.length; i++) {
+        total_stake=total_stake.add(erasStakers[i][1].total.toBn());
+    }
+
+    console.log(total_stake.div(divisor).toNumber());
 }
 
 async function getPartialBlockInfo(start: number, end: number, api: ApiPromise, multibar: any): Promise<BlockInfo[]> {
