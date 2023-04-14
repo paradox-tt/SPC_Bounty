@@ -49,32 +49,36 @@ async function main() {
     console.log(`Kusama: start => ${kusama_limit.start} end => ${kusama_limit.end}`);
 
     console.log(`Collecting block data for Statemine collators.`);
-    /*
-        var statemine_block_promises = [];
-    
-        for (var i = statemine_limit.start; i < statemine_limit.end; i += Constants.PARALLEL_INCREMENTS) {
-            var start = i;
-            var end = start + Constants.PARALLEL_INCREMENTS;
-            statemine_block_promises.push(getPartialBlockInfo(start, end, statemine_api, multibar));
-    
-            //If the next increment would exceed the end, then initiate it here
-            if (end + Constants.PARALLEL_INCREMENTS > statemine_limit.end) {
-                statemine_block_promises.push(getPartialBlockInfo(end, statemine_limit.end, statemine_api, multibar));
-            }
+
+    var statemine_block_promises = [];
+
+    for (var i = statemine_limit.start; i < statemine_limit.end; i += Constants.PARALLEL_INCREMENTS) {
+
+        const wsProviderStatemine = new WsProvider(Constants.STATEMINE_WSS);
+        const statemine_api = await ApiPromise.create({ provider: wsProviderStatemine });
+        
+        var start = i;
+        var end = start + Constants.PARALLEL_INCREMENTS;
+        statemine_block_promises.push(getPartialBlockInfo(start, end, statemine_api, multibar));
+
+        //If the next increment would exceed the end, then initiate it here
+        if (end + Constants.PARALLEL_INCREMENTS > statemine_limit.end) {
+            statemine_block_promises.push(getPartialBlockInfo(end, statemine_limit.end, statemine_api, multibar));
         }
-    
-        console.log(`Processing each block`)
-        const statemine_data = new StatemineData();
-    
-        await Promise.all(statemine_block_promises).then(results => {
-            for (var i = 0; i < statemine_block_promises.length; i++)
-                for (var j = 0; j < results[i].length; j++)
-                    statemine_data.addData(results[i][j]);
-        });
-        multibar.stop();
-    
-        console.log(statemine_data.getCollators());
-    */
+    }
+
+    console.log(`Processing each block`)
+    const statemine_data = new StatemineData();
+
+    await Promise.all(statemine_block_promises).then(results => {
+        for (var i = 0; i < statemine_block_promises.length; i++)
+            for (var j = 0; j < results[i].length; j++)
+                statemine_data.addData(results[i][j]);
+    });
+    multibar.stop();
+
+    console.log(statemine_data.getCollators());
+
 
     await getEraInfo(kusama_limit.start, kusama_limit.end, kusama_api, multibar);
 
@@ -146,7 +150,7 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
     var divisor = new BN(1000000000000);
 
     for (var i = 0; i < erasStakers.length; i++) {
-        total_stake=total_stake.add(erasStakers[i][1].total.toBn());
+        total_stake = total_stake.add(erasStakers[i][1].total.toBn());
     }
 
     console.log(total_stake.div(divisor).toNumber());
