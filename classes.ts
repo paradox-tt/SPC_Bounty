@@ -51,11 +51,15 @@ export class StatemineData {
 
 }
 
-export class RewardData{
+export class RewardData {
 
-    public constructor(){
+    private collators: CollatorData[];
 
+    public constructor() {
+        this.collators = [];
     }
+
+
 
 
 }
