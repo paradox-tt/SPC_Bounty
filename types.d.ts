@@ -21,8 +21,3 @@ export interface EraBlock{
     blockhash:string
 }
 
-export interface EraReward{
-    era:number,
-    total_stake:number,
-    reward:number
-}

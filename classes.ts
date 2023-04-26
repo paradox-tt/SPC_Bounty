@@ -59,7 +59,30 @@ export class RewardData {
         this.collators = [];
     }
 
+}
 
+export class EraReward {
 
+    private _era: number;
+    private _total_stake: number;
+    private _reward: number;
+
+    public constructor(era: number, total_stake: number, reward: number) {
+        this._era = era;
+        this._total_stake = total_stake;
+        this._reward = reward;
+    }
+
+    /*
+        Gets the total reward for the era and divides it equally over the total staked for the era
+        and then multiplies it by 50 (KSM) to determine the average reward for every 50 KSM staked.
+    */
+    public getStakingReward(): number {
+        return (this._reward / this._total_stake)*50;
+    }
+
+    public getEra(): number {
+        return this._era;
+    }
 
 }

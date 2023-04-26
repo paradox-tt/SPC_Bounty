@@ -1,9 +1,9 @@
 import type { SignedBlock, Header, BlockHash } from '@polkadot/types/interfaces';
 import type { HeaderExtended } from '@polkadot/api-derive/types';
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { BlockInfo, BlockLimits, EraBlock, EraReward } from './types';
+import { BlockInfo, BlockLimits, EraBlock } from './types';
 import * as Constants from './constants'
-import { StatemineData } from './classes';
+import { StatemineData, EraReward } from './classes';
 import "@polkadot/api-augment";
 import { start } from 'repl';
 import { BN } from 'bn.js';
@@ -28,18 +28,22 @@ async function main() {
     const month = getInputVariable('Enter month', 1, 12);
     const year = getInputVariable('Enter year', new Date().getFullYear(), null);
 
-    console.log(`Collecting block limits`);
+    console.log(`Determining block limits for Kusama and Statemine`);
     const [statemine_limit, kusama_limit] = await getLimits(month, year, statemine_api, kusama_api);
 
+    /*
     console.log(`Collecting block data for Statemine collators.`);
     
     const statemine_data = new StatemineData();
-    (await collectStatemineData(statemine_limit, multibar)).map(x => statemine_data.addData(x));
+    (await collectStatemineData(statemine_limit, multibar)).map(x => statemine_data.addData(x));*/
 
-
-    await getEraInfo(kusama_limit.start, kusama_limit.end, kusama_api, multibar);
+    console.log(`Collecting era reward information for Kusama.`);
+    const staking_info = await getEraInfo(kusama_limit.start, kusama_limit.end, kusama_api, multibar);
+    
 
     multibar.stop();
+
+    console.log(staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b));
     process.exit(0);
 
     //console.log(`Completed`);
@@ -49,7 +53,6 @@ async function getLimits(month: number, year: number, statemine_api: ApiPromise,
     var statemine_limit: BlockLimits = { start: 0, end: 0 };
     var kusama_limit: BlockLimits = { start: 0, end: 0 };
 
-    console.log(`Calculating block limits.`);
     await Promise.all([
         getFirstBlockForMonth(month, year, statemine_api, Constants.STATEMINE_BLOCK_TIME),
         getLastBlockForMonth(month, year, statemine_api, Constants.STATEMINE_BLOCK_TIME),
@@ -57,7 +60,7 @@ async function getLimits(month: number, year: number, statemine_api: ApiPromise,
         getLastBlockForMonth(month, year, kusama_api, Constants.KUSAMA_BLOCK_TIME)
     ]).then(result => {
         statemine_limit.start = result[0],
-            statemine_limit.end = result[1],
+        statemine_limit.end = result[1],
             kusama_limit.start = result[2],
             kusama_limit.end = result[3]
     });
@@ -97,9 +100,9 @@ async function collectStatemineData(statemine_limit: BlockLimits, multibar: any)
 
 }
 
-async function getEraInfo(start: number, end: number, api: ApiPromise, multibar: any): Promise<EraBlock[]> {
+async function getEraInfo(start: number, end: number, api: ApiPromise, multibar: any): Promise<EraReward[]> {
 
-    var era_data: EraBlock[] = [];
+    var result: EraReward[] = [];
 
     const kusama_data_extract_progress = multibar.create(end - start, 0);
     kusama_data_extract_progress.increment();
@@ -107,30 +110,36 @@ async function getEraInfo(start: number, end: number, api: ApiPromise, multibar:
 
     for (var block = start; block < end; block += 1800) {
 
-        const era_data_at_block = await getEraInfoFromBlock(api, block);
+        var era_data_at_block = await getEraInfoFromBlock(api, block);
 
         //Only add if the era was not already added
-        if (!era_data.find(x => x.era == era_data_at_block.era))
-            era_data.push(era_data_at_block);
+        if (!result.find(x => x.getEra() == era_data_at_block.era - 1)) {
+            const eraRewards = await getRewardInfoFromBlock(api, era_data_at_block.blockhash, era_data_at_block.era - 1);
+            result.push(eraRewards);
 
-        if (era_data.length > 1) {
-            var record = era_data[era_data.length - 1];
-            const eraRewards = await getRewardInfoFromBlock(api, record.blockhash, record.era - 1);
-
+            kusama_data_extract_progress.update(block - start, { filename: `Block: ${block}` });
         }
-        kusama_data_extract_progress.update(block - start, { filename: `Block: ${block}` });
+
+        //If the next increment goes beyond the end, then redo using the ending block
+        if(block+1800 > end){
+            era_data_at_block = await getEraInfoFromBlock(api, end);
+
+            if (!result.find(x => x.getEra() == era_data_at_block.era - 1)) {
+                const eraRewards = await getRewardInfoFromBlock(api, era_data_at_block.blockhash, era_data_at_block.era - 1);
+                result.push(eraRewards);
+                kusama_data_extract_progress.update(end - start, { filename: `Block: ${block}` });
+            }
+        }      
 
     }
-
-    console.log(era_data);
-    console.log(era_data.length);
     //kusama_data_extract_progress.update(end - start, { filename: `DONE` });
 
     kusama_data_extract_progress.stop();
 
-    return era_data;
+    return result;
 
 }
+
 
 async function getEraInfoFromBlock(api: ApiPromise, block: number): Promise<EraBlock> {
     const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
@@ -165,11 +174,8 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
 
     total_stake = total_stake.div(divisor);
 
-    return {
-        era: era,
-        total_stake: total_stake.toNumber(),
-        reward: reward.toNumber()
-    }
+    return new EraReward(era, total_stake.toNumber(), reward.toNumber());
+
 }
 
 async function getPartialBlockInfo(start: number, end: number, api: ApiPromise, multibar: any): Promise<BlockInfo[]> {
