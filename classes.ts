@@ -1,4 +1,4 @@
-import { BlockInfo, CollatorData } from "./types";
+import { BlockInfo, CollatorData, ExtrinsicInfo, ManualPayment } from "./types";
 import * as Constants from './constants';
 
 export class StatemineData {
@@ -51,16 +51,6 @@ export class StatemineData {
 
 }
 
-export class RewardData {
-
-    private collators: CollatorData[];
-
-    public constructor() {
-        this.collators = [];
-    }
-
-}
-
 export class EraReward {
 
     private _era: number;
@@ -78,11 +68,83 @@ export class EraReward {
         and then multiplies it by 50 (KSM) to determine the average reward for every 50 KSM staked.
     */
     public getStakingReward(): number {
-        return (this._reward / this._total_stake)*50;
+        return (this._reward / this._total_stake) * 50;
     }
 
     public getEra(): number {
         return this._era;
     }
 
+}
+
+export class RewardCollector {
+
+    private ema7: number;
+    private staking_info: EraReward[];
+    private manual_entries: ManualPayment[];
+    private statemine_data: StatemineData;
+
+    public constructor(ema7: number, staking_info: EraReward[], manual_entries: ManualPayment[], statemine_data: StatemineData) {
+        this.ema7 = ema7;
+        this.staking_info = staking_info;
+        this.manual_entries = manual_entries;
+        this.statemine_data = statemine_data;
+    }
+
+    private getExtrinsicInfo(): ExtrinsicInfo[] {
+        var results: ExtrinsicInfo[] = [];
+
+        //Add manual entries
+        this.manual_entries.map(x => results.push(
+            {
+                recipient: x.recipient,
+                description: x.description,
+                value: x.isKSM ? x.value : x.value / this.ema7
+            }
+        ));
+
+        //Calculate collator rewards
+        const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
+
+        const max = this.statemine_data.getMaxBlocks();
+        const collators = this.statemine_data.getCollators();
+
+        for (var i = 0; i < collators.length; i++) {
+            var collator = collators[i];
+            var ratio = collator.number_of_blocks / max;
+
+            const adjusted_staking_reward = ratio * staking_reward;
+            const adjusted_collator_reward = ratio * (300 / this.ema7);
+
+            results.push(
+                {
+                    recipient: collator.collator,
+                    description: `${this.getIdentity(collator.collator)} produced ${collator.number_of_blocks}/${max} blocks; SR:${adjusted_staking_reward}, CR:${adjusted_collator_reward}`,
+                    value: adjusted_collator_reward + adjusted_staking_reward
+                }
+            );
+
+        }
+
+        //Calculate curator rewards
+        var total_reward = results.map(x => x.value).reduce((a, b) => a + b);
+
+        Constants.CURATORS.map(x => results.push(
+            {
+                recipient: x,
+                description: `Curator ${this.getIdentity(x)} reward from total ${total_reward}`,
+                value: (total_reward * Constants.CURATOR_REWARD) / Constants.CURATORS.length
+            }
+        ));
+
+        return results;
+    }
+
+    public getExtrinsic():string{
+        return "";
+    }
+
+    private getIdentity(address: string): string {
+        return address;
+    }
 }

@@ -1,11 +1,10 @@
 import type { SignedBlock, Header, BlockHash } from '@polkadot/types/interfaces';
 import type { HeaderExtended } from '@polkadot/api-derive/types';
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { BlockInfo, BlockLimits, EraBlock } from './types';
+import { BlockInfo, BlockLimits, EraBlock, ManualPayment } from './types';
 import * as Constants from './constants'
-import { StatemineData, EraReward } from './classes';
+import { StatemineData, EraReward, RewardCollector } from './classes';
 import "@polkadot/api-augment";
-import { start } from 'repl';
 import { BN } from 'bn.js';
 
 main();
@@ -19,31 +18,40 @@ async function main() {
     const wsProviderKusama = new WsProvider(Constants.KUSAMA_WSS);
     const kusama_api = await ApiPromise.create({ provider: wsProviderKusama });
 
+    const prompt = require('prompt-sync')({ sigint: true });
+
     const multibar = new cliProgress.MultiBar({
         clearOnComplete: false,
         hideCursor: true,
         format: ' {bar} | {filename} | {value}/{total}',
     }, cliProgress.Presets.shades_grey);
 
+    console.log(`Establish the period of analysis.`);
     const month = getInputVariable('Enter month', 1, 12);
     const year = getInputVariable('Enter year', new Date().getFullYear(), null);
+
+    const ema7 = prompt(`Enter the EMA7 for use during the period above: `);
+
+    console.log(`Collect manual entries.`);
+    const manual_entries = getManualEntries();
 
     console.log(`Determining block limits for Kusama and Statemine`);
     const [statemine_limit, kusama_limit] = await getLimits(month, year, statemine_api, kusama_api);
 
-    /*
     console.log(`Collecting block data for Statemine collators.`);
-    
     const statemine_data = new StatemineData();
-    (await collectStatemineData(statemine_limit, multibar)).map(x => statemine_data.addData(x));*/
+    (await collectStatemineData(statemine_limit, multibar)).map(x => statemine_data.addData(x));
 
     console.log(`Collecting era reward information for Kusama.`);
     const staking_info = await getEraInfo(kusama_limit.start, kusama_limit.end, kusama_api, multibar);
-    
 
     multibar.stop();
 
-    console.log(staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b));
+    const reward_collector = new RewardCollector(ema7,staking_info,manual_entries,statemine_data);
+    const reward_hash = reward_collector.getExtrinsic();
+
+    console.log(reward_hash);
+
     process.exit(0);
 
     //console.log(`Completed`);
@@ -60,7 +68,7 @@ async function getLimits(month: number, year: number, statemine_api: ApiPromise,
         getLastBlockForMonth(month, year, kusama_api, Constants.KUSAMA_BLOCK_TIME)
     ]).then(result => {
         statemine_limit.start = result[0],
-        statemine_limit.end = result[1],
+            statemine_limit.end = result[1],
             kusama_limit.start = result[2],
             kusama_limit.end = result[3]
     });
@@ -121,7 +129,7 @@ async function getEraInfo(start: number, end: number, api: ApiPromise, multibar:
         }
 
         //If the next increment goes beyond the end, then redo using the ending block
-        if(block+1800 > end){
+        if (block + 1800 > end) {
             era_data_at_block = await getEraInfoFromBlock(api, end);
 
             if (!result.find(x => x.getEra() == era_data_at_block.era - 1)) {
@@ -129,7 +137,7 @@ async function getEraInfo(start: number, end: number, api: ApiPromise, multibar:
                 result.push(eraRewards);
                 kusama_data_extract_progress.update(end - start, { filename: `Block: ${block}` });
             }
-        }      
+        }
 
     }
     //kusama_data_extract_progress.update(end - start, { filename: `DONE` });
@@ -159,7 +167,7 @@ async function getEraInfoFromBlock(api: ApiPromise, block: number): Promise<EraB
 
 async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: number): Promise<EraReward> {
     const api_at = await api.at(blockhash);
-    var divisor = new BN(1000000000000);
+    var divisor = new BN(Constants.KUSAMA_PLANKS);
 
     const erasStakers = await api_at.query.staking.erasStakers.entries(era);
     const erasValidatorReward = await api_at.query.staking.erasValidatorReward(era);
@@ -284,6 +292,36 @@ function getInputVariable(input_text: string, min_value: number, max_value: numb
     )
 
     return Number(result);
+}
+
+function getManualEntries(): ManualPayment[] {
+    var result: ManualPayment[] = [];
+    var continue_adding: boolean = false;
+
+    const prompt = require('prompt-sync')({ sigint: true });
+
+    do {
+        if (prompt(`Would you like to add ${result.length == 0 ? `a manual` : `another`} entry? (y/n): `) == "y") {
+            result.push(getManualEntry());
+            continue_adding = true;
+        } else {
+            continue_adding = false;
+        }
+    } while (continue_adding)
+
+    return result;
+}
+
+function getManualEntry(): ManualPayment {
+    const prompt = require('prompt-sync')({ sigint: true });
+
+    return {
+        recipient: prompt(`Enter the recipient address: `),
+        description: prompt(`Enter a description: `),
+        value: prompt(`Enter a value for payment: `),
+        isKSM: prompt(`Is this in KSM? otherwise fiat (y/n): `) == "y"
+    }
+
 }
 
 async function getBlockInfo(api: ApiPromise, block: number): Promise<BlockInfo> {
