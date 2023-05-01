@@ -11,12 +11,6 @@ main();
 
 async function main() {
     const cliProgress = require('cli-progress');
-    //Statemine WSS
-    const wsProviderStatemine = new WsProvider(Constants.STATEMINE_WSS);
-    const statemine_api = await ApiPromise.create({ provider: wsProviderStatemine });
-    //Kusama WSS
-    const wsProviderKusama = new WsProvider(Constants.KUSAMA_WSS);
-    const kusama_api = await ApiPromise.create({ provider: wsProviderKusama });
 
     const prompt = require('prompt-sync')({ sigint: true });
 
@@ -30,26 +24,40 @@ async function main() {
     const month = getInputVariable('Enter month', 1, 12);
     const year = getInputVariable('Enter year', new Date().getFullYear(), null);
 
-    const ema7 = prompt(`Enter the EMA7 for use during the period above: `);
+    const ema7 = parseFloat(prompt(`Enter the EMA7 for use during the period above: `));
 
     console.log(`Collect manual entries.`);
     const manual_entries = getManualEntries();
 
+    //Statemine WSS
+    const wsProviderStatemine = new WsProvider(Constants.STATEMINE_WSS);
+    const statemine_api = await ApiPromise.create({ provider: wsProviderStatemine });
+    //Kusama WSS
+    const wsProviderKusama = new WsProvider(Constants.KUSAMA_WSS);
+    const kusama_api = await ApiPromise.create({ provider: wsProviderKusama });
+
     console.log(`Determining block limits for Kusama and Statemine`);
     const [statemine_limit, kusama_limit] = await getLimits(month, year, statemine_api, kusama_api);
+    console.log(statemine_limit);
+
 
     console.log(`Collecting block data for Statemine collators.`);
+    await statemine_api.isReady;
+
     const statemine_data = new StatemineData();
     (await collectStatemineData(statemine_limit, multibar)).map(x => statemine_data.addData(x));
 
     console.log(`Collecting era reward information for Kusama.`);
+    await kusama_api.isReady;
+
     const staking_info = await getEraInfo(kusama_limit.start, kusama_limit.end, kusama_api, multibar);
 
     multibar.stop();
 
-    const reward_collector = new RewardCollector(ema7,staking_info,manual_entries,statemine_data);
-    const reward_hash = reward_collector.getExtrinsic();
+    const reward_collector = new RewardCollector(ema7, staking_info, manual_entries, statemine_data);
+    const reward_hash = await reward_collector.getExtrinsic();
 
+    console.log(`Extrinsic Data:`)
     console.log(reward_hash);
 
     process.exit(0);
@@ -318,7 +326,7 @@ function getManualEntry(): ManualPayment {
     return {
         recipient: prompt(`Enter the recipient address: `),
         description: prompt(`Enter a description: `),
-        value: prompt(`Enter a value for payment: `),
+        value: parseFloat(prompt(`Enter a value for payment: `)),
         isKSM: prompt(`Is this in KSM? otherwise fiat (y/n): `) == "y"
     }
 

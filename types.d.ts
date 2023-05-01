@@ -33,3 +33,9 @@ export interface ExtrinsicInfo{
     description:string,
     value:number
 }
+
+export interface Identity{
+    name:string,
+    verified:boolean,
+    sub:string
+}
