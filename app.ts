@@ -335,8 +335,11 @@ function getManualEntry(): ManualPayment {
 
 async function getBlockInfo(api: ApiPromise, block: number): Promise<BlockInfo> {
 
+    await api.isConnected;
+    await api.isReady;
+    
     const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
-
+    
     const api_at = await api.at(blockhash);
     const time = await api_at.query.timestamp.now();
     const header: HeaderExtended = await api.derive.chain.getHeader(blockhash);
