@@ -17,8 +17,8 @@ export class StatemineData {
     public addData(info: BlockInfo) {
         //Double check to ensure blocks aren't counted twice
         //Also don't reward collators in the no reward table
-        if (this.previous_blocks.indexOf(info.number) < 0 
-            && Constants.NO_REWARD_COLLATORS.indexOf(info.author)==-1) {
+        if (this.previous_blocks.indexOf(info.number) < 0
+            && Constants.NO_REWARD_COLLATORS.indexOf(info.author) == -1) {
 
             //Find collator and increment block
             //If the collator does not exist then create it with a block count of 1
@@ -109,9 +109,9 @@ export class RewardCollector {
                 description: x.description,
                 value: (x.isKSM ? x.value : x.value / this.ema7) * Constants.KUSAMA_PLANKS
             }
-            
+
         ));
-       
+
         //Calculate collator rewards
         const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
 
@@ -219,7 +219,7 @@ export class RewardCollector {
         return final_batch.toHex();
     }
 
-    private async getIdentity(addr: string, api: ApiPromise): Promise<Identity> {     
+    private async getIdentity(addr: string, api: ApiPromise): Promise<Identity> {
 
         let identity, verified, sub;
         identity = await api.query.identity.identityOf(addr);
@@ -250,7 +250,11 @@ export class RewardCollector {
         }
 
         if (raw && raw.substring(0, 2) === "0x") {
-            return { name: this.hex2a(raw.substring(2)), verified: verified, sub: sub };
+            return {
+                name: this.hex2a(raw.substring(2)).replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, ''),
+                verified: verified,
+                sub: sub
+            };
         } else return { name: raw, verified: verified, sub: sub };
     };
 
