@@ -121,7 +121,7 @@ export class RewardCollector {
         for (var i = 0; i < collators.length; i++) {
             var collator = collators[i];
             var ratio = collator.number_of_blocks / max;
-            var name = (await this.getIdentity(collator.collator, api)).name;
+            var collator_name = await this.getIdentity(collator.collator, api);
 
             const adjusted_staking_reward = ratio * staking_reward;
             const adjusted_collator_reward = ratio * (300 / this.ema7);
@@ -129,7 +129,7 @@ export class RewardCollector {
             results.push(
                 {
                     recipient: collator.collator,
-                    description: `${name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${adjusted_staking_reward.toFixed(2)}, CR: ${adjusted_collator_reward.toFixed(2)}`,
+                    description: `${collator_name.name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${adjusted_staking_reward.toFixed(2)}, CR: ${adjusted_collator_reward.toFixed(2)}`,
                     value: (adjusted_collator_reward + adjusted_staking_reward) * Constants.KUSAMA_PLANKS
                 }
             );
@@ -145,12 +145,12 @@ export class RewardCollector {
         }
 
         for (var i = 0; i < Constants.CURATORS.length; i++) {
-            var name = (await this.getIdentity(Constants.CURATORS[i], api)).name;
+            var curator = await this.getIdentity(Constants.CURATORS[i], api);
 
             results.push(
                 {
                     recipient: Constants.CURATORS[i],
-                    description: `Reward for curator (${name}) as a portion from total ${(total_reward / Constants.KUSAMA_PLANKS).toFixed(2)}`,
+                    description: `Reward for curator (${curator.name}) as a portion from total ${(total_reward / Constants.KUSAMA_PLANKS).toFixed(2)}`,
                     value: ((total_reward * Constants.CURATOR_REWARD) / Constants.CURATORS.length)
                 }
             )
@@ -219,15 +219,7 @@ export class RewardCollector {
         return final_batch.toHex();
     }
 
-    private async getIdentity(addr: string, api: ApiPromise): Promise<Identity> {
-        
-        if(addr=""){
-            return {
-                name:"",
-                sub:"",
-                verified:false
-            };
-        }
+    private async getIdentity(addr: string, api: ApiPromise): Promise<Identity> {     
 
         let identity, verified, sub;
         identity = await api.query.identity.identityOf(addr);
