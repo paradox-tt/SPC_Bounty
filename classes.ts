@@ -16,7 +16,9 @@ export class StatemineData {
 
     public addData(info: BlockInfo) {
         //Double check to ensure blocks aren't counted twice
-        if (this.previous_blocks.indexOf(info.number) < 0) {
+        //Also don't reward collators in the no reward table
+        if (this.previous_blocks.indexOf(info.number) < 0 
+            && Constants.NO_REWARD_COLLATORS.indexOf(info.author)==-1) {
 
             //Find collator and increment block
             //If the collator does not exist then create it with a block count of 1
@@ -93,7 +95,6 @@ export class RewardCollector {
         this.staking_info = staking_info;
         this.manual_entries = manual_entries;
         this.statemine_data = statemine_data;
-
     }
 
     public async getExtrinsicInfo(): Promise<ExtrinsicInfo[]> {
@@ -106,10 +107,11 @@ export class RewardCollector {
             {
                 recipient: x.recipient,
                 description: x.description,
-                value: x.isKSM ? x.value : x.value / this.ema7
+                value: (x.isKSM ? x.value : x.value / this.ema7) * Constants.KUSAMA_PLANKS
             }
+            
         ));
-
+       
         //Calculate collator rewards
         const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
 
@@ -119,6 +121,7 @@ export class RewardCollector {
         for (var i = 0; i < collators.length; i++) {
             var collator = collators[i];
             var ratio = collator.number_of_blocks / max;
+            var name = (await this.getIdentity(collator.collator, api)).name;
 
             const adjusted_staking_reward = ratio * staking_reward;
             const adjusted_collator_reward = ratio * (300 / this.ema7);
@@ -126,15 +129,20 @@ export class RewardCollector {
             results.push(
                 {
                     recipient: collator.collator,
-                    description: `${this.getIdentity(collator.collator, api)} produced ${collator.number_of_blocks}/${max} blocks; SR:${adjusted_staking_reward}, CR:${adjusted_collator_reward}`,
-                    value: adjusted_collator_reward + adjusted_staking_reward
+                    description: `${name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${adjusted_staking_reward.toFixed(2)}, CR: ${adjusted_collator_reward.toFixed(2)}`,
+                    value: (adjusted_collator_reward + adjusted_staking_reward) * Constants.KUSAMA_PLANKS
                 }
             );
 
         }
 
         //Calculate curator rewards
-        var total_reward = results.map(x => x.value).reduce((a, b) => a + b);
+        var total_reward_map = results.map(x => x.value);
+        var total_reward = 0;
+
+        if (total_reward_map.length > 0) {
+            total_reward = total_reward_map.reduce((a, b) => a + b);
+        }
 
         for (var i = 0; i < Constants.CURATORS.length; i++) {
             var name = (await this.getIdentity(Constants.CURATORS[i], api)).name;
@@ -142,8 +150,8 @@ export class RewardCollector {
             results.push(
                 {
                     recipient: Constants.CURATORS[i],
-                    description: `Curator ${name} reward from total ${total_reward}`,
-                    value: (total_reward * Constants.CURATOR_REWARD) / Constants.CURATORS.length
+                    description: `Reward for curator (${name}) as a portion from total ${(total_reward / Constants.KUSAMA_PLANKS).toFixed(2)}`,
+                    value: ((total_reward * Constants.CURATOR_REWARD) / Constants.CURATORS.length)
                 }
             )
         }
@@ -168,7 +176,7 @@ export class RewardCollector {
             //Transaction to add a child bounty
             const add_cb_tx = api.tx.childBounties.addChildBounty(
                 Constants.PARENT_BOUNTY_ID,
-                parseInt((extrinsic_info[i].value * Constants.MULTIPLIER).toFixed(0)),
+                parseInt(extrinsic_info[i].value.toFixed(0)),
                 extrinsic_info[i].description
             );
 
@@ -212,6 +220,14 @@ export class RewardCollector {
     }
 
     private async getIdentity(addr: string, api: ApiPromise): Promise<Identity> {
+        
+        if(addr=""){
+            return {
+                name:"",
+                sub:"",
+                verified:false
+            };
+        }
 
         let identity, verified, sub;
         identity = await api.query.identity.identityOf(addr);

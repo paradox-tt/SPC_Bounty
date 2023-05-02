@@ -38,8 +38,9 @@ async function main() {
 
     console.log(`Determining block limits for Kusama and Statemine`);
     const [statemine_limit, kusama_limit] = await getLimits(month, year, statemine_api, kusama_api);
-    console.log(statemine_limit);
-
+    
+    console.log(`Statemine start: ${statemine_limit.start} end: ${statemine_limit.end}`);
+    console.log(`Kusama start: ${kusama_limit.start} end: ${kusama_limit.end}`);
 
     console.log(`Collecting block data for Statemine collators.`);
     await statemine_api.isReady;
