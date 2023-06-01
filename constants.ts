@@ -1,7 +1,7 @@
-export const STATEMINE_WSS = `wss://rpc-statemine.luckyfriday.io`;
+export const STATEMINE_WSS = `wss://statemine-rpc.polkadot.io`;
 export const STATEMINE_BLOCK_TIME = 12;
 
-export const KUSAMA_WSS = `wss://rpc-kusama.luckyfriday.io`;
+export const KUSAMA_WSS = `wss://kusama-rpc.polkadot.io`;
 export const KUSAMA_BLOCK_TIME = 6;
 
 export const KUSAMA_PLANKS = 1000000000000;
