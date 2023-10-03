@@ -1,4 +1,4 @@
-export const STATEMINE_WSS = `wss://statemine-rpc.polkadot.io`;
+export const STATEMINE_WSS = `ws://localhost:9111`;
 export const STATEMINE_BLOCK_TIME = 12;
 
 export const KUSAMA_WSS = `wss://kusama-rpc.polkadot.io`;
