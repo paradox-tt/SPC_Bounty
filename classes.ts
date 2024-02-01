@@ -4,7 +4,7 @@ import { ApiPromise, WsProvider } from '@polkadot/api';
 import { Codec } from '@polkadot/types-codec/types/codec';
 import "@polkadot/api-augment";
 
-export class StatemineData {
+export class ParachainData {
 
     private collators: CollatorData[];
     private previous_blocks: number[];
@@ -87,20 +87,20 @@ export class RewardCollector {
     private ema7: number;
     private staking_info: EraReward[];
     private manual_entries: ManualPayment[];
-    private statemine_data: StatemineData;
+    private statemine_data: ParachainData;
 
 
-    public constructor(ema7: number, staking_info: EraReward[], manual_entries: ManualPayment[], statemine_data: StatemineData) {
+    public constructor(ema7: number, staking_info: EraReward[], manual_entries: ManualPayment[], statemine_data: ParachainData) {
         this.ema7 = ema7;
         this.staking_info = staking_info;
         this.manual_entries = manual_entries;
         this.statemine_data = statemine_data;
     }
 
-    public async getExtrinsicInfo(): Promise<ExtrinsicInfo[]> {
+    public async getExtrinsicInfo(chain:Constants.RELAY): Promise<ExtrinsicInfo[]> {
         var results: ExtrinsicInfo[] = [];
-        const wsProviderKusama = new WsProvider(Constants.KUSAMA_WSS);
-        const api = await ApiPromise.create({ provider: wsProviderKusama });
+        const wsProvider = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
+        const api = await ApiPromise.create({ provider: wsProvider });
 
         //Add manual entries
         this.manual_entries.map(x => results.push(
@@ -111,6 +111,15 @@ export class RewardCollector {
             }
 
         ));
+
+        //Hosting reward
+        results.push(
+            {
+                recipient: Constants.HOSTING_RECIPIENT,
+                description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(2)}`,
+                value: Constants.HOSTING_FEE / this.ema7
+            }
+        );
 
         //Calculate collator rewards
         const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
@@ -124,7 +133,7 @@ export class RewardCollector {
             var collator_name = await this.getIdentity(collator.collator, api);
 
             const adjusted_staking_reward = ratio * staking_reward;
-            const adjusted_collator_reward = ratio * (300 / this.ema7);
+            const adjusted_collator_reward = ratio * (Constants.COLLATOR_REWARD / this.ema7);
 
             results.push(
                 {
@@ -159,10 +168,10 @@ export class RewardCollector {
         return results;
     }
 
-    public async getExtrinsic(): Promise<string> {
-        const extrinsic_info = await this.getExtrinsicInfo();
-        const wsProviderKusama = new WsProvider(Constants.KUSAMA_WSS);
-        const api = await ApiPromise.create({ provider: wsProviderKusama });
+    public async getExtrinsic(chain:Constants.RELAY): Promise<string> {
+        const extrinsic_info = await this.getExtrinsicInfo(chain);
+        const wsProviderRelay = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
+        const api = await ApiPromise.create({ provider: wsProviderRelay });
 
         //Gets the current child bounty counter
         var cb_count_codec = await api.query.childBounties.childBountyCount();
@@ -175,28 +184,28 @@ export class RewardCollector {
 
             //Transaction to add a child bounty
             const add_cb_tx = api.tx.childBounties.addChildBounty(
-                Constants.PARENT_BOUNTY_ID,
+                chain == Constants.RELAY.POLKADOT ? Constants.POLKADOT_PARENT_BOUNTY_ID : Constants.KUSAMA_PARENT_BOUNTY_ID,
                 parseInt(extrinsic_info[i].value.toFixed(0)),
                 extrinsic_info[i].description
             );
 
             //Transaction to propose a curator for the bounty that was just created
             const prop_cur_tx = api.tx.childBounties.proposeCurator(
-                Constants.PARENT_BOUNTY_ID,
+                chain == Constants.RELAY.POLKADOT ? Constants.POLKADOT_PARENT_BOUNTY_ID : Constants.KUSAMA_PARENT_BOUNTY_ID,
                 cb_count,
-                { Id: Constants.CURATOR_ACCOUNT },
+                { Id: chain == Constants.RELAY.POLKADOT ? Constants.DOT_CURATOR_ACCOUNT : Constants.KSM_CURATOR_ACCOUNT },
                 0
             )
 
             //Accept curation of the bounty
             const acc_cb_tx = api.tx.childBounties.acceptCurator(
-                Constants.PARENT_BOUNTY_ID,
+                chain == Constants.RELAY.POLKADOT ? Constants.POLKADOT_PARENT_BOUNTY_ID : Constants.KUSAMA_PARENT_BOUNTY_ID,
                 cb_count
             );
 
             //Award the bounty to the recipient
             const award_cb_tx = api.tx.childBounties.awardChildBounty(
-                Constants.PARENT_BOUNTY_ID,
+                chain == Constants.RELAY.POLKADOT ? Constants.POLKADOT_PARENT_BOUNTY_ID : Constants.KUSAMA_PARENT_BOUNTY_ID,
                 cb_count,
                 { Id: extrinsic_info[i].recipient }
             )

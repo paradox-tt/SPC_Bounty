@@ -3,7 +3,7 @@ import type { HeaderExtended } from '@polkadot/api-derive/types';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { BlockInfo, BlockLimits, EraBlock, ManualPayment } from './types';
 import * as Constants from './constants'
-import { StatemineData, EraReward, RewardCollector } from './classes';
+import { ParachainData, EraReward, RewardCollector } from './classes';
 import "@polkadot/api-augment";
 import { BN } from 'bn.js';
 
@@ -22,41 +22,46 @@ async function main() {
 
     console.log(`Establish the period of analysis.`);
     const month = getInputVariable('Enter month', 1, 12);
-    const year = getInputVariable('Enter year', new Date().getFullYear(), null);
+    const year = getInputVariable('Enter year', new Date().getFullYear()-1, null);
+
+    const chain = getInputVariable('1) Kusama-AssetHub\n2) Kusama-BridgeHub\n3) Polkadot-AssetHub\n4) Polkadot-BridgeHub\n5) Polkadot-Collectives', 1, 5);
 
     const ema7 = parseFloat(prompt(`Enter the EMA7 for use during the period above: `));
 
     console.log(`Collect manual entries.`);
     const manual_entries = getManualEntries();
 
+    const [PARACHAIN_WSS, RELAY_CHAIN_WSS] = getWSSDetails(chain);
+
     //Statemine WSS
-    const wsProviderStatemine = new WsProvider(Constants.STATEMINE_WSS);
-    const statemine_api = await ApiPromise.create({ provider: wsProviderStatemine });
+    const wsProviderParachain = new WsProvider(PARACHAIN_WSS);
+    const parachain_api = await ApiPromise.create({ provider: wsProviderParachain });
     //Kusama WSS
-    const wsProviderKusama = new WsProvider(Constants.KUSAMA_WSS);
-    const kusama_api = await ApiPromise.create({ provider: wsProviderKusama });
+    const wsProviderRelay = new WsProvider(RELAY_CHAIN_WSS);
+    const relay_api = await ApiPromise.create({ provider: wsProviderRelay });
 
-    console.log(`Determining block limits for Kusama and Statemine`);
-    const [statemine_limit, kusama_limit] = await getLimits(month, year, statemine_api, kusama_api);
-    
-    console.log(`Statemine start: ${statemine_limit.start} end: ${statemine_limit.end}`);
-    console.log(`Kusama start: ${kusama_limit.start} end: ${kusama_limit.end}`);
+    console.log(`Determining block limits for Relay-chain and Parachain`);
+    const [parachain_limit, relay_limit] = await getLimits(month, year, parachain_api, relay_api);
 
-    console.log(`Collecting block data for Statemine collators.`);
-    await statemine_api.isReady;
+    console.log(`Parachain start: ${parachain_limit.start} end: ${parachain_limit.end}`);
+    console.log(`Relay-chain start: ${relay_limit.start} end: ${relay_limit.end}`);
 
-    const statemine_data = new StatemineData();
-    (await collectStatemineData(statemine_limit, multibar)).map(x => statemine_data.addData(x));
+    console.log(`Collecting block data for Parachain collators.`);
+    await parachain_api.isReady;
 
-    console.log(`Collecting era reward information for Kusama.`);
-    await kusama_api.isReady;
+    const statemine_data = new ParachainData();
+    (await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => statemine_data.addData(x));
 
-    const staking_info = await getEraInfo(kusama_limit.start, kusama_limit.end, kusama_api, multibar);
+    console.log(`Collecting era reward information for the relay-chain.`);
+    await relay_api.isReady;
+
+    const staking_info = await getEraInfo(relay_limit.start, relay_limit.end, relay_api, multibar);
 
     multibar.stop();
 
     const reward_collector = new RewardCollector(ema7, staking_info, manual_entries, statemine_data);
-    const reward_hash = await reward_collector.getExtrinsic();
+    //If the chain is > 2 then it is a Polkadot chain, submit 1, else 0
+    const reward_hash = await reward_collector.getExtrinsic(chain > 2 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
 
     console.log(`Extrinsic Data:`)
     console.log(reward_hash);
@@ -66,49 +71,83 @@ async function main() {
     //console.log(`Completed`);
 }
 
-async function getLimits(month: number, year: number, statemine_api: ApiPromise, kusama_api: ApiPromise) {
-    var statemine_limit: BlockLimits = { start: 0, end: 0 };
-    var kusama_limit: BlockLimits = { start: 0, end: 0 };
+function getWSSDetails(chain: number): [string, string] {
+    var parachain_wss: string;
+    var relay_chain_wss: string;
 
-    await Promise.all([
-        getFirstBlockForMonth(month, year, statemine_api, Constants.STATEMINE_BLOCK_TIME),
-        getLastBlockForMonth(month, year, statemine_api, Constants.STATEMINE_BLOCK_TIME),
-        getFirstBlockForMonth(month, year, kusama_api, Constants.KUSAMA_BLOCK_TIME),
-        getLastBlockForMonth(month, year, kusama_api, Constants.KUSAMA_BLOCK_TIME)
-    ]).then(result => {
-        statemine_limit.start = result[0],
-            statemine_limit.end = result[1],
-            kusama_limit.start = result[2],
-            kusama_limit.end = result[3]
-    });
+    switch (chain) {
+        case Constants.CHAINS.KUSAMA_ASSET_HUB:
+            parachain_wss = Constants.KSM_ASSETHUB_WSS;
+            relay_chain_wss = Constants.KSM_WSS;
+            break;
+        case Constants.CHAINS.KUSAMA_BRIDGE_HUB:
+            parachain_wss = Constants.KSM_BRIDGEHUB_WSS;
+            relay_chain_wss = Constants.KSM_WSS;
+            break;
+        case Constants.CHAINS.POLKADOT_ASSET_HUB:
+            parachain_wss = Constants.DOT_ASSETHUB_WSS;
+            relay_chain_wss = Constants.DOT_WSS;
+            break;
+        case Constants.CHAINS.POLKADOT_BRIDGE_HUB:
+            parachain_wss = Constants.DOT_BRIDGEHUB_WSS;
+            relay_chain_wss = Constants.DOT_WSS;
+            break;
+        case Constants.CHAINS.POLKADOT_COLLECTIVES:
+            parachain_wss = Constants.DOT_COLLECTIVES_WSS;
+            relay_chain_wss = Constants.DOT_WSS;
+            break;
+        default:
+            parachain_wss = ``;
+            relay_chain_wss = ``;
+            break;
+    }
 
-    return [statemine_limit, kusama_limit];
+    return [parachain_wss, relay_chain_wss];
 }
 
-async function collectStatemineData(statemine_limit: BlockLimits, multibar: any): Promise<BlockInfo[]> {
-    var statemine_block_promises = [];
+async function getLimits(month: number, year: number, parachain_api: ApiPromise, relay_api: ApiPromise) {
+    var parachain_limit: BlockLimits = { start: 0, end: 0 };
+    var relay_limit: BlockLimits = { start: 0, end: 0 };
+
+    await Promise.all([
+        getFirstBlockForMonth(month, year, parachain_api, Constants.PARACHAIN_BLOCK_TIME),
+        getLastBlockForMonth(month, year, parachain_api, Constants.PARACHAIN_BLOCK_TIME),
+        getFirstBlockForMonth(month, year, relay_api, Constants.RELAY_BLOCK_TIME),
+        getLastBlockForMonth(month, year, relay_api, Constants.RELAY_BLOCK_TIME)
+    ]).then(result => {
+        parachain_limit.start = result[0],
+            parachain_limit.end = result[1],
+            relay_limit.start = result[2],
+            relay_limit.end = result[3]
+    });
+
+    return [parachain_limit, relay_limit];
+}
+
+async function collectParachainData(parachain_limit: BlockLimits, multibar: any, parachain_wss: string): Promise<BlockInfo[]> {
+    var parachain_block_promises = [];
     var return_results: BlockInfo[] = [];
 
-    for (var i = statemine_limit.start; i < statemine_limit.end; i += Constants.PARALLEL_INCREMENTS) {
+    for (var i = parachain_limit.start; i < parachain_limit.end; i += Constants.PARALLEL_INCREMENTS) {
 
-        const wsProviderStatemine = new WsProvider(Constants.STATEMINE_WSS);
-        const statemine_api = await ApiPromise.create({ provider: wsProviderStatemine });
+        const wsProviderParachain = new WsProvider(parachain_wss);
+        const parachain_api = await ApiPromise.create({ provider: wsProviderParachain });
 
         var start = i;
         var end = start + Constants.PARALLEL_INCREMENTS;
-        statemine_block_promises.push(getPartialBlockInfo(start, end, statemine_api, multibar));
+        parachain_block_promises.push(getPartialBlockInfo(start, end, parachain_api, multibar));
 
         //If the next increment exceeds the end, then initiate it here
-        if (end + Constants.PARALLEL_INCREMENTS > statemine_limit.end) {
-            statemine_block_promises.push(getPartialBlockInfo(end, statemine_limit.end, statemine_api, multibar));
+        if (end + Constants.PARALLEL_INCREMENTS > parachain_limit.end) {
+            parachain_block_promises.push(getPartialBlockInfo(end, parachain_limit.end, parachain_api, multibar));
         }
     }
 
     console.log(`Processing each block`)
 
 
-    await Promise.all(statemine_block_promises).then(results => {
-        for (var i = 0; i < statemine_block_promises.length; i++)
+    await Promise.all(parachain_block_promises).then(results => {
+        for (var i = 0; i < parachain_block_promises.length; i++)
             for (var j = 0; j < results[i].length; j++)
                 return_results.push(results[i][j]);
     });
@@ -234,7 +273,7 @@ async function getLastBlockForMonth(month: number, year: number, api: ApiPromise
     //If we jumped to far behind then increment blocks to find the last of the month
     if (block_info.date.getMonth() <= month && block_info.date.getFullYear() <= year) {
         //Compensate for time difference
-        current_block += ((60 * 60) / Constants.STATEMINE_BLOCK_TIME) - 50;
+        current_block += ((60 * 60) / Constants.PARACHAIN_BLOCK_TIME) - 50;
         while (new Date(Number(block_info.date) - (60 * 60 * 1000)).getMonth() == month) {
             block_info = await getBlockInfo(api, ++current_block);
         }
@@ -337,9 +376,9 @@ async function getBlockInfo(api: ApiPromise, block: number): Promise<BlockInfo> 
 
     await api.isConnected;
     await api.isReady;
-    
+
     const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
-    
+
     const api_at = await api.at(blockhash);
     const time = await api_at.query.timestamp.now();
     const header: HeaderExtended = await api.derive.chain.getHeader(blockhash);
