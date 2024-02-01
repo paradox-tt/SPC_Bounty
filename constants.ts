@@ -20,10 +20,16 @@ export const PARALLEL_INCREMENTS = 6000;
 //Collator reward in fiat
 export const COLLATOR_REWARD = 300.00;
 
-export const CURATORS = [
+export const KSM_CURATORS = [
     'HxyKNyZsr7gMAo2C4W4XKVt94MGLq71vJBm4Cs5YtbKgzxL',
     'HLD3kgUaiwfi97wfLQSXAjhWf1NsbahcMYLijzNu3HNbG4B',
     'DPcLx1cnnJKvLfad4JTNzHA3T2vMmvwLHZSAj9gGim4qLjg'
+];
+
+export const DOT_CURATORS = [
+    '13YWynHAu8F8uKZFbQwvPgJ67xizvo21HCEQU3Ke8z1XHoyT',
+    '14tcZ9ibPGdMwb7XXE4QChgVuJU1xXTvDFpV3E1HpMajbBsH',
+    '1pHpxvp2CYscDreozYQdBkJkUkLFQftxQTAwMs5M1a6GRBf'
 ];
 
 export const NO_REWARD_COLLATORS = [
@@ -34,7 +40,7 @@ export const NO_REWARD_COLLATORS = [
 export const CURATOR_REWARD = 0.05
 
 export const KUSAMA_PARENT_BOUNTY_ID = 20;
-export const POLKADOT_PARENT_BOUNTY_ID = 34;
+export const POLKADOT_PARENT_BOUNTY_ID = 32;
 
 //KSM to Plank multiplier
 export const KSM_MULTIPLIER = 12;

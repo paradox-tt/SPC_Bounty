@@ -87,14 +87,14 @@ export class RewardCollector {
     private ema7: number;
     private staking_info: EraReward[];
     private manual_entries: ManualPayment[];
-    private statemine_data: ParachainData;
+    private parachain_data: ParachainData;
 
 
-    public constructor(ema7: number, staking_info: EraReward[], manual_entries: ManualPayment[], statemine_data: ParachainData) {
+    public constructor(ema7: number, staking_info: EraReward[], manual_entries: ManualPayment[], parachain_data: ParachainData) {
         this.ema7 = ema7;
         this.staking_info = staking_info;
         this.manual_entries = manual_entries;
-        this.statemine_data = statemine_data;
+        this.parachain_data = parachain_data;
     }
 
     public async getExtrinsicInfo(chain:Constants.RELAY): Promise<ExtrinsicInfo[]> {
@@ -124,8 +124,8 @@ export class RewardCollector {
         //Calculate collator rewards
         const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
 
-        const max = this.statemine_data.getMaxBlocks();
-        const collators = this.statemine_data.getCollators();
+        const max = this.parachain_data.getMaxBlocks();
+        const collators = this.parachain_data.getCollators();
 
         for (var i = 0; i < collators.length; i++) {
             var collator = collators[i];
@@ -153,14 +153,16 @@ export class RewardCollector {
             total_reward = total_reward_map.reduce((a, b) => a + b);
         }
 
-        for (var i = 0; i < Constants.CURATORS.length; i++) {
-            var curator = await this.getIdentity(Constants.CURATORS[i], api);
+        var curators = chain == Constants.RELAY.POLKADOT ? Constants.DOT_CURATORS : Constants.KSM_CURATORS;
+
+        for (var i = 0; i < curators.length; i++) {
+            var curator = await this.getIdentity(curators[i], api);
 
             results.push(
                 {
-                    recipient: Constants.CURATORS[i],
+                    recipient: curators[i],
                     description: `Reward for curator (${curator.name}) as a portion from total ${(total_reward / Constants.KUSAMA_PLANKS).toFixed(2)}`,
-                    value: ((total_reward * Constants.CURATOR_REWARD) / Constants.CURATORS.length)
+                    value: ((total_reward * Constants.CURATOR_REWARD) / curators.length)
                 }
             )
         }
