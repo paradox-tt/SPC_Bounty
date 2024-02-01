@@ -22,16 +22,16 @@ async function main() {
 
     console.log(`Establish the period of analysis.`);
     const month = getInputVariable('Enter month', 1, 12);
-    const year = getInputVariable('Enter year', new Date().getFullYear()-1, null);
+    const year = getInputVariable('Enter year', new Date().getFullYear() - 1, null);
 
-    const chain = getInputVariable('1) Kusama-AssetHub\n2) Kusama-BridgeHub\n3) Polkadot-AssetHub\n4) Polkadot-BridgeHub\n5) Polkadot-Collectives', 1, 5);
+    const chain = getInputVariable('1) Kusama-AssetHub 2) Kusama-BridgeHub 3) Polkadot-AssetHub 4) Polkadot-BridgeHub 5) Polkadot-Collectives', 1, 5);
 
     const ema7 = parseFloat(prompt(`Enter the EMA7 for use during the period above: `));
 
     console.log(`Collect manual entries.`);
     const manual_entries = getManualEntries();
 
-    const [PARACHAIN_WSS, RELAY_CHAIN_WSS] = getWSSDetails(chain);
+    const [PARACHAIN_WSS, RELAY_CHAIN_WSS, CHAIN_NAME] = getWSSDetails(chain);
 
     //Statemine WSS
     const wsProviderParachain = new WsProvider(PARACHAIN_WSS);
@@ -63,7 +63,7 @@ async function main() {
     //If the chain is > 2 then it is a Polkadot chain, submit 1, else 0
     const reward_hash = await reward_collector.getExtrinsic(chain > 2 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
 
-    console.log(`Extrinsic Data:`)
+    console.log(`${CHAIN_NAME} | Extrinsic Data:`)
     console.log(reward_hash);
 
     process.exit(0);
@@ -71,38 +71,45 @@ async function main() {
     //console.log(`Completed`);
 }
 
-function getWSSDetails(chain: number): [string, string] {
+function getWSSDetails(chain: number): [string, string, string] {
     var parachain_wss: string;
     var relay_chain_wss: string;
+    var chain_name: string
 
     switch (chain) {
         case Constants.CHAINS.KUSAMA_ASSET_HUB:
             parachain_wss = Constants.KSM_ASSETHUB_WSS;
             relay_chain_wss = Constants.KSM_WSS;
+            chain_name = `Kusama Asset Hub`;
             break;
         case Constants.CHAINS.KUSAMA_BRIDGE_HUB:
             parachain_wss = Constants.KSM_BRIDGEHUB_WSS;
             relay_chain_wss = Constants.KSM_WSS;
+            chain_name = `Kusama Bridge Hub`;
             break;
         case Constants.CHAINS.POLKADOT_ASSET_HUB:
             parachain_wss = Constants.DOT_ASSETHUB_WSS;
             relay_chain_wss = Constants.DOT_WSS;
+            chain_name = `Polkadot Asset Hub`;
             break;
         case Constants.CHAINS.POLKADOT_BRIDGE_HUB:
             parachain_wss = Constants.DOT_BRIDGEHUB_WSS;
             relay_chain_wss = Constants.DOT_WSS;
+            chain_name = `Polkadot Bridge Hub`;
             break;
         case Constants.CHAINS.POLKADOT_COLLECTIVES:
             parachain_wss = Constants.DOT_COLLECTIVES_WSS;
             relay_chain_wss = Constants.DOT_WSS;
+            chain_name = `Polkadot Collectives`;
             break;
         default:
             parachain_wss = ``;
             relay_chain_wss = ``;
+            chain_name = ``;
             break;
     }
 
-    return [parachain_wss, relay_chain_wss];
+    return [parachain_wss, relay_chain_wss, chain_name];
 }
 
 async function getLimits(month: number, year: number, parachain_api: ApiPromise, relay_api: ApiPromise) {
