@@ -25,7 +25,7 @@ export interface ManualPayment {
     recipient: string,
     description: string,
     value: number,
-    isKSM: boolean
+    isToken: boolean
 }
 
 export interface ExtrinsicInfo{

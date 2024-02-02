@@ -97,7 +97,7 @@ export class RewardCollector {
         this.parachain_data = parachain_data;
     }
 
-    public async getExtrinsicInfo(chain:Constants.RELAY): Promise<ExtrinsicInfo[]> {
+    public async getExtrinsicInfo(chain: Constants.RELAY): Promise<ExtrinsicInfo[]> {
         var results: ExtrinsicInfo[] = [];
         const wsProvider = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
         const api = await ApiPromise.create({ provider: wsProvider });
@@ -108,7 +108,7 @@ export class RewardCollector {
             {
                 recipient: x.recipient,
                 description: x.description,
-                value: (x.isKSM ? x.value : x.value / this.ema7) * PLANKS
+                value: (x.isToken ? x.value : x.value / this.ema7) * PLANKS
             }
         ));
 
@@ -117,7 +117,7 @@ export class RewardCollector {
             {
                 recipient: Constants.HOSTING_RECIPIENT,
                 description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(2)}`,
-                value: (Constants.HOSTING_FEE / this.ema7)* PLANKS
+                value: (Constants.HOSTING_FEE / this.ema7) * PLANKS
             }
         );
 
@@ -170,7 +170,7 @@ export class RewardCollector {
         return results;
     }
 
-    public async getExtrinsic(chain:Constants.RELAY): Promise<string> {
+    public async getExtrinsic(chain: Constants.RELAY): Promise<string> {
         const extrinsic_info = await this.getExtrinsicInfo(chain);
         const wsProviderRelay = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
         const api = await ApiPromise.create({ provider: wsProviderRelay });

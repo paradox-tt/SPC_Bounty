@@ -374,7 +374,7 @@ function getManualEntry(): ManualPayment {
         recipient: prompt(`Enter the recipient address: `),
         description: prompt(`Enter a description: `),
         value: parseFloat(prompt(`Enter a value for payment: `)),
-        isKSM: prompt(`Is this in KSM? otherwise fiat (y/n): `) == "y"
+        isToken: prompt(`Is this in tokens (DOT/KSM)? otherwise fiat (y/n): `) == "y"
     }
 
 }
