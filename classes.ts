@@ -102,14 +102,14 @@ export class RewardCollector {
         const wsProvider = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
         const api = await ApiPromise.create({ provider: wsProvider });
 
+        const PLANKS = Constants.RELAY.POLKADOT ? Constants.POLKADOT_PLANKS : Constants.KUSAMA_PLANKS;
         //Add manual entries
         this.manual_entries.map(x => results.push(
             {
                 recipient: x.recipient,
                 description: x.description,
-                value: (x.isKSM ? x.value : x.value / this.ema7) * Constants.KUSAMA_PLANKS
+                value: (x.isKSM ? x.value : x.value / this.ema7) * PLANKS
             }
-
         ));
 
         //Hosting reward
@@ -117,7 +117,7 @@ export class RewardCollector {
             {
                 recipient: Constants.HOSTING_RECIPIENT,
                 description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(2)}`,
-                value: Constants.HOSTING_FEE / this.ema7
+                value: (Constants.HOSTING_FEE / this.ema7)* PLANKS
             }
         );
 
@@ -139,7 +139,7 @@ export class RewardCollector {
                 {
                     recipient: collator.collator,
                     description: `${collator_name.name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${adjusted_staking_reward.toFixed(2)}, CR: ${adjusted_collator_reward.toFixed(2)}`,
-                    value: (adjusted_collator_reward + adjusted_staking_reward) * Constants.KUSAMA_PLANKS
+                    value: (adjusted_collator_reward + adjusted_staking_reward) * PLANKS
                 }
             );
 
