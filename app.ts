@@ -10,6 +10,7 @@ import { BN } from 'bn.js';
 main();
 
 async function main() {
+    let cluster = require('cluster');
     const cliProgress = require('cli-progress');
 
     const prompt = require('prompt-sync')({ sigint: true });
@@ -145,9 +146,10 @@ async function getLimits(month: number, year: number, parachain_api: ApiPromise,
 async function collectParachainData(parachain_limit: BlockLimits, multibar: any, parachain_wss: string): Promise<BlockInfo[]> {
     var parachain_block_promises = [];
     var return_results: BlockInfo[] = [];
+    let cluster = require('cluster');
 
     for (var i = parachain_limit.start; i < parachain_limit.end; i += Constants.PARALLEL_INCREMENTS) {
-
+        cluster.fork();
         const wsProviderParachain = new WsProvider(parachain_wss);
         const parachain_api = await ApiPromise.create({ provider: wsProviderParachain });
 
