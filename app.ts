@@ -149,16 +149,14 @@ async function collectParachainData(parachain_limit: BlockLimits, multibar: any,
   
     for (var i = parachain_limit.start; i < parachain_limit.end; i += Constants.PARALLEL_INCREMENTS) {
        
-        const wsProviderParachain = new WsProvider(parachain_wss);
-        const parachain_api = await ApiPromise.create({ provider: wsProviderParachain });
-
+  
         var start = i;
         var end = start + Constants.PARALLEL_INCREMENTS;
-        parachain_block_promises.push(getPartialBlockInfo(start, end, parachain_api, multibar));
+        parachain_block_promises.push(getPartialBlockInfo(start, end, parachain_wss, multibar));
 
         //If the next increment exceeds the end, then initiate it here
         if (end + Constants.PARALLEL_INCREMENTS > parachain_limit.end) {
-            parachain_block_promises.push(getPartialBlockInfo(end, parachain_limit.end, parachain_api, multibar));
+            parachain_block_promises.push(getPartialBlockInfo(end, parachain_limit.end, parachain_wss, multibar));
         }
     }
 
@@ -255,14 +253,17 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
 
 }
 
-async function getPartialBlockInfo(start: number, end: number, api: ApiPromise, multibar: any): Promise<BlockInfo[]> {
+async function getPartialBlockInfo(start: number, end: number, parachain_wss: string, multibar: any): Promise<BlockInfo[]> {
 
     const statemine_data_extract_progress = multibar.create(end - start, 0);
     statemine_data_extract_progress.increment();
 
     let cluster = require('cluster');
     cluster.fork();
-    
+
+    const wsProviderParachain = new WsProvider(parachain_wss);
+    const api = await ApiPromise.create({ provider: wsProviderParachain });
+
     var statemine_block_data: BlockInfo[] = [];
 
     for (var i = start; i < end; i++) {
