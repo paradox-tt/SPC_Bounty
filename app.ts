@@ -255,11 +255,11 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
 
 async function getPartialBlockInfo(start: number, end: number, parachain_wss: string, multibar: any): Promise<BlockInfo[]> {
 
-    const statemine_data_extract_progress = multibar.create(end - start, 0);
-    statemine_data_extract_progress.increment();
-
     let cluster = require('cluster');
     cluster.fork();
+
+    const statemine_data_extract_progress = multibar.create(end - start, 0);
+    statemine_data_extract_progress.increment();
 
     const wsProviderParachain = new WsProvider(parachain_wss);
     const api = await ApiPromise.create({ provider: wsProviderParachain });
