@@ -146,10 +146,9 @@ async function getLimits(month: number, year: number, parachain_api: ApiPromise,
 async function collectParachainData(parachain_limit: BlockLimits, multibar: any, parachain_wss: string): Promise<BlockInfo[]> {
     var parachain_block_promises = [];
     var return_results: BlockInfo[] = [];
-    let cluster = require('cluster');
-
+  
     for (var i = parachain_limit.start; i < parachain_limit.end; i += Constants.PARALLEL_INCREMENTS) {
-        cluster.fork();
+       
         const wsProviderParachain = new WsProvider(parachain_wss);
         const parachain_api = await ApiPromise.create({ provider: wsProviderParachain });
 
@@ -261,6 +260,9 @@ async function getPartialBlockInfo(start: number, end: number, api: ApiPromise, 
     const statemine_data_extract_progress = multibar.create(end - start, 0);
     statemine_data_extract_progress.increment();
 
+    let cluster = require('cluster');
+    cluster.fork();
+    
     var statemine_block_data: BlockInfo[] = [];
 
     for (var i = start; i < end; i++) {
