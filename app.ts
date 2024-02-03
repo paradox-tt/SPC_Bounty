@@ -50,7 +50,7 @@ async function main() {
     await parachain_api.isReady;
 
     const statemine_data = new ParachainData();
-    //(await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => statemine_data.addData(x));
+    (await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => statemine_data.addData(x));
 
     var invulnerables = await getInvulnerables(parachain_api);
     statemine_data.setInvulnerables(invulnerables);
