@@ -36,8 +36,21 @@ export const DOT_CURATORS = [
 
 //Parity Collators over all chains
 export const NO_REWARD_COLLATORS = [
+    //Polkadot AssetHub
+    '12ixt2xmCJKuLXjM3gh1SY7C3aj4gBoBUqExTBTGhLCSATFw',
+    '15X2eHehrexKqz6Bs6fQTjptP2ndn39eYdQTeREVeRk32p54',
+    //Polkadot BridgeHub
+    '134AK3RiMA97Fx9dLj1CvuLJUa8Yo93EeLA1TkP6CCGnWMSd',
+    '15dU8Tt7kde2diuHzijGbKGPU5K8BPzrFJfYFozvrS1DdE21',
+    //Polkadot Collectives
+    '1NvWYSswSt5v95m5z9JycedzTXEWJ9Zcgbu5BMnGAwiWUC9',
+    '12n87jggYnvxvdHJaEiTAKZF7ZniJqxafYoKzEqfJCUDvJXP',
+    //Kusama AssetHub
     'EPk1wv1TvVFfsiG73YLuLAtGacfPmojyJKvmifobBzUTxFv',
-    'JL21EURyqQxJk9inVW7iuexJNzzuV7HpZJVxQrY8BzwFiTJ'
+    'JL21EURyqQxJk9inVW7iuexJNzzuV7HpZJVxQrY8BzwFiTJ',
+    //Kusama BridgeHub
+    'DQkekNBt8g6D7bPUEqhgfujADxzzfivr1qQZJkeGzAqnEzF',
+    'HbUc5qrLtKAZvasioiTSf1CunaN2SyEwvfsgMuYQjXA5sfk'
 ]
 //Curator's reward as a percentage of the final
 export const CURATOR_REWARD = 0.05
