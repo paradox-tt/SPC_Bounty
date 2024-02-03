@@ -15,6 +15,8 @@ export const RELAY_BLOCK_TIME = 6;
 export const KUSAMA_PLANKS = 1000000000000;
 export const POLKADOT_PLANKS = 10000000000;
 
+export const NUM_DECIMALS = 4;
+
 export const PARALLEL_INCREMENTS = 6000;
 
 //Collator reward in fiat
