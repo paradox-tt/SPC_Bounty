@@ -61,19 +61,22 @@ export class EraReward {
     private _era: number;
     private _total_stake: number;
     private _reward: number;
+    private _chain: Constants.RELAY;
 
-    public constructor(era: number, total_stake: number, reward: number) {
+    public constructor(era: number, total_stake: number, reward: number, chain: Constants.RELAY) {
         this._era = era;
         this._total_stake = total_stake;
         this._reward = reward;
+        this._chain = chain;
     }
 
     /*
         Gets the total reward for the era and divides it equally over the total staked for the era
-        and then multiplies it by 50 (KSM) to determine the average reward for every 50 KSM staked.
+        and then multiplies it by 50 (KSM) / 1000 DOT to determine the average reward for every DOT/KSM staked.
     */
     public getStakingReward(): number {
-        return (this._reward / this._total_stake) * 50;
+        const permissionless =this._chain == Constants.RELAY.POLKADOT ? Constants.DOT_PERMISSIONLESS : Constants.KSM_PERMISSIONLESS;
+        return (this._reward / this._total_stake) * permissionless;
     }
 
     public getEra(): number {
@@ -116,7 +119,7 @@ export class RewardCollector {
         results.push(
             {
                 recipient: Constants.HOSTING_RECIPIENT,
-                description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(2)}`,
+                description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)}`,
                 value: (Constants.HOSTING_FEE / this.ema7) * PLANKS
             }
         );
@@ -138,7 +141,7 @@ export class RewardCollector {
             results.push(
                 {
                     recipient: collator.collator,
-                    description: `${collator_name.name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${adjusted_staking_reward.toFixed(2)}, CR: ${adjusted_collator_reward.toFixed(2)}`,
+                    description: `${collator_name.name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${adjusted_staking_reward.toFixed(Constants.NUM_DECIMALS)}, CR: ${adjusted_collator_reward.toFixed(Constants.NUM_DECIMALS)}`,
                     value: (adjusted_collator_reward + adjusted_staking_reward) * PLANKS
                 }
             );
@@ -161,7 +164,7 @@ export class RewardCollector {
             results.push(
                 {
                     recipient: curators[i],
-                    description: `Reward for curator (${curator.name}) as a portion from total ${(total_reward / Constants.KUSAMA_PLANKS).toFixed(2)}`,
+                    description: `Reward for curator (${curator.name}) as a portion from total ${(total_reward / PLANKS).toFixed(Constants.NUM_DECIMALS)}`,
                     value: ((total_reward * Constants.CURATOR_REWARD) / curators.length)
                 }
             )

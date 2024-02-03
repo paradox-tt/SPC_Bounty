@@ -55,7 +55,7 @@ async function main() {
     console.log(`Collecting era reward information for the relay-chain.`);
     await relay_api.isReady;
 
-    const staking_info = await getEraInfo(relay_limit.start, relay_limit.end, relay_api, multibar);
+    const staking_info = await getEraInfo(relay_limit.start, relay_limit.end, relay_api, multibar,chain > 2 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
 
     multibar.stop();
 
@@ -163,7 +163,7 @@ async function collectParachainData(parachain_limit: BlockLimits, multibar: any,
 
 }
 
-async function getEraInfo(start: number, end: number, api: ApiPromise, multibar: any): Promise<EraReward[]> {
+async function getEraInfo(start: number, end: number, api: ApiPromise, multibar: any, relay: Constants.RELAY): Promise<EraReward[]> {
 
     var result: EraReward[] = [];
 
@@ -177,7 +177,7 @@ async function getEraInfo(start: number, end: number, api: ApiPromise, multibar:
 
         //Only add if the era was not already added
         if (!result.find(x => x.getEra() == era_data_at_block.era - 1)) {
-            const eraRewards = await getRewardInfoFromBlock(api, era_data_at_block.blockhash, era_data_at_block.era - 1);
+            const eraRewards = await getRewardInfoFromBlock(api, era_data_at_block.blockhash, era_data_at_block.era - 1, relay);
             result.push(eraRewards);
 
             kusama_data_extract_progress.update(block - start, { filename: `Block: ${block}` });
@@ -188,7 +188,7 @@ async function getEraInfo(start: number, end: number, api: ApiPromise, multibar:
             era_data_at_block = await getEraInfoFromBlock(api, end);
 
             if (!result.find(x => x.getEra() == era_data_at_block.era - 1)) {
-                const eraRewards = await getRewardInfoFromBlock(api, era_data_at_block.blockhash, era_data_at_block.era - 1);
+                const eraRewards = await getRewardInfoFromBlock(api, era_data_at_block.blockhash, era_data_at_block.era - 1, relay);
                 result.push(eraRewards);
                 kusama_data_extract_progress.update(end - start, { filename: `Block: ${block}` });
             }
@@ -220,9 +220,11 @@ async function getEraInfoFromBlock(api: ApiPromise, block: number): Promise<EraB
     return era_obj;
 }
 
-async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: number): Promise<EraReward> {
+async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: number, relay: Constants.RELAY): Promise<EraReward> {
     const api_at = await api.at(blockhash);
-    var divisor = new BN(Constants.KUSAMA_PLANKS);
+    const PLANKS = Constants.RELAY.POLKADOT ? Constants.POLKADOT_PLANKS : Constants.KUSAMA_PLANKS;
+
+    var divisor = new BN(PLANKS);
 
     const erasStakers = await api_at.query.staking.erasStakers.entries(era);
     const erasValidatorReward = await api_at.query.staking.erasValidatorReward(era);
@@ -237,7 +239,7 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
 
     total_stake = total_stake.div(divisor);
 
-    return new EraReward(era, total_stake.toNumber(), reward.toNumber());
+    return new EraReward(era, total_stake.toNumber(), reward.toNumber(), relay);
 
 }
 

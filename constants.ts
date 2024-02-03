@@ -17,7 +17,7 @@ export const POLKADOT_PLANKS = 10000000000;
 
 export const NUM_DECIMALS = 4;
 
-export const PARALLEL_INCREMENTS = 6000;
+export const PARALLEL_INCREMENTS = 15000;
 
 //Collator reward in fiat
 export const COLLATOR_REWARD = 300.00;
@@ -49,11 +49,15 @@ export const KSM_MULTIPLIER = 12;
 export const DOT_MULTIPLIER = 10;
 
 export const KSM_CURATOR_ACCOUNT = 'GsGcRLXWFcVnxUaWVE9ojJpnDNM9R7QNxYBrshWtnTcohyc';
-export const DOT_CURATOR_ACCOUNT = ``
+export const DOT_CURATOR_ACCOUNT = `15NCSvkYjtf2G1fvtYVnLCSPmKiZk3ReX1AUWsSDD5ocFVXa`;
 
 //Hosting fee per parachain instance
 export const HOSTING_FEE = 25;
 export const HOSTING_RECIPIENT = `J11Rp4mjz3vRb2DL51HqRGRjhuEQRyXgtuFskebXb8zMZ9s`;
+
+//Permissionless fees
+export const KSM_PERMISSIONLESS = 50;
+export const DOT_PERMISSIONLESS = 1000;
 
 export enum CHAINS {
     KUSAMA_ASSET_HUB = 1,
