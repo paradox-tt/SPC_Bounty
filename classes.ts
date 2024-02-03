@@ -8,11 +8,21 @@ export class ParachainData {
 
     private collators: CollatorData[];
     private previous_blocks: number[];
+    private _invulnerables: string[];
 
     public constructor() {
         this.collators = [];
         this.previous_blocks = [];
+        this._invulnerables = [];
     };
+
+    public setInvulnerables(value: string[]) {
+        this._invulnerables = value;
+    }
+
+    public getInvulnerables(): string[] {
+        return this._invulnerables;
+    }
 
     public addData(info: BlockInfo) {
         //Double check to ensure blocks aren't counted twice
@@ -75,7 +85,7 @@ export class EraReward {
         and then multiplies it by 50 (KSM) / 1000 DOT to determine the average reward for every DOT/KSM staked.
     */
     public getStakingReward(): number {
-        const permissionless =this._chain == Constants.RELAY.POLKADOT ? Constants.DOT_PERMISSIONLESS : Constants.KSM_PERMISSIONLESS;
+        const permissionless = this._chain == Constants.RELAY.POLKADOT ? Constants.DOT_PERMISSIONLESS : Constants.KSM_PERMISSIONLESS;
         return (this._reward / this._total_stake) * permissionless;
     }
 
@@ -135,13 +145,16 @@ export class RewardCollector {
             var ratio = collator.number_of_blocks / max;
             var collator_name = await this.getIdentity(collator.collator, api);
 
-            const adjusted_staking_reward = ratio * staking_reward;
+            var adjusted_staking_reward = ratio * staking_reward;
             const adjusted_collator_reward = ratio * (Constants.COLLATOR_REWARD / this.ema7);
+
+            var invulnerable = this.parachain_data.getInvulnerables().indexOf(collator.collator) > -1;
+            adjusted_staking_reward = invulnerable ? 0 : adjusted_staking_reward;
 
             results.push(
                 {
                     recipient: collator.collator,
-                    description: `${collator_name.name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${adjusted_staking_reward.toFixed(Constants.NUM_DECIMALS)}, CR: ${adjusted_collator_reward.toFixed(Constants.NUM_DECIMALS)}`,
+                    description: `${collator_name.name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${invulnerable ? 'Invul:0' : adjusted_staking_reward.toFixed(Constants.NUM_DECIMALS)}, CR: ${adjusted_collator_reward.toFixed(Constants.NUM_DECIMALS)}`,
                     value: (adjusted_collator_reward + adjusted_staking_reward) * PLANKS
                 }
             );

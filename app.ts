@@ -50,7 +50,10 @@ async function main() {
     await parachain_api.isReady;
 
     const statemine_data = new ParachainData();
-    (await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => statemine_data.addData(x));
+    //(await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => statemine_data.addData(x));
+
+    var invulnerables = await getInvulnerables(parachain_api);
+    statemine_data.setInvulnerables(invulnerables);
 
     console.log(`Collecting era reward information for the relay-chain.`);
     await relay_api.isReady;
@@ -69,6 +72,14 @@ async function main() {
     process.exit(0);
 
     //console.log(`Completed`);
+}
+
+async function getInvulnerables(api:ApiPromise):Promise<string[]>{
+   
+    const invulnerables = await api.query.collatorSelection.invulnerables();
+   
+    return JSON.parse(JSON.stringify(invulnerables.toJSON()));
+    
 }
 
 function getWSSDetails(chain: number): [string, string, string] {

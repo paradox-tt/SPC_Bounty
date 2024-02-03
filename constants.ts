@@ -34,6 +34,7 @@ export const DOT_CURATORS = [
     '1pHpxvp2CYscDreozYQdBkJkUkLFQftxQTAwMs5M1a6GRBf'
 ];
 
+//Parity Collators over all chains
 export const NO_REWARD_COLLATORS = [
     'EPk1wv1TvVFfsiG73YLuLAtGacfPmojyJKvmifobBzUTxFv',
     'JL21EURyqQxJk9inVW7iuexJNzzuV7HpZJVxQrY8BzwFiTJ'
