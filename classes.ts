@@ -25,6 +25,8 @@ export class ParachainData {
     }
 
     public addData(info: BlockInfo) {
+        let cluster = require('cluster');
+        cluster.fork();
         //Double check to ensure blocks aren't counted twice
         //Also don't reward collators in the no reward table
         if (this.previous_blocks.indexOf(info.number) < 0
