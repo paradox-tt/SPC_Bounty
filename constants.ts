@@ -17,7 +17,7 @@ export const POLKADOT_PLANKS = 10000000000;
 
 export const NUM_DECIMALS = 4;
 
-export const PARALLEL_INCREMENTS = 15000;
+export const PARALLEL_INCREMENTS = 5000;
 
 //Collator reward in fiat
 export const COLLATOR_REWARD = 300.00;
