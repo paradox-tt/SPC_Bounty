@@ -32,55 +32,61 @@ async function main() {
     console.log(`Collect manual entries.`);
     const manual_entries = getManualEntries();
 
-    const [PARACHAIN_WSS, RELAY_CHAIN_WSS, CHAIN_NAME] = getWSSDetails(chain);
+    var staking_info: EraReward[] = [];
+    var parachain_data: ParachainData;
 
-    //Statemine WSS
-    const wsProviderParachain = new WsProvider(PARACHAIN_WSS);
-    const parachain_api = await ApiPromise.create({ provider: wsProviderParachain });
-    //Kusama WSS
-    const wsProviderRelay = new WsProvider(RELAY_CHAIN_WSS);
-    const relay_api = await ApiPromise.create({ provider: wsProviderRelay });
+    if (prompt(`Would you like to process chain blocks (y/n)?`) == "y") {
+        const [PARACHAIN_WSS, RELAY_CHAIN_WSS, CHAIN_NAME] = getWSSDetails(chain);
 
-    console.log(`Determining block limits for Relay-chain and Parachain`);
-    const [parachain_limit, relay_limit] = await getLimits(month, year, parachain_api, relay_api);
+        //Statemine WSS
+        const wsProviderParachain = new WsProvider(PARACHAIN_WSS);
+        const parachain_api = await ApiPromise.create({ provider: wsProviderParachain });
+        //Kusama WSS
+        const wsProviderRelay = new WsProvider(RELAY_CHAIN_WSS);
+        const relay_api = await ApiPromise.create({ provider: wsProviderRelay });
 
-    console.log(`Parachain start: ${parachain_limit.start} end: ${parachain_limit.end}`);
-    console.log(`Relay-chain start: ${relay_limit.start} end: ${relay_limit.end}`);
+        console.log(`Determining block limits for Relay-chain and Parachain`);
+        const [parachain_limit, relay_limit] = await getLimits(month, year, parachain_api, relay_api);
 
-    console.log(`Collecting block data for Parachain collators.`);
-    await parachain_api.isReady;
+        console.log(`Parachain start: ${parachain_limit.start} end: ${parachain_limit.end}`);
+        console.log(`Relay-chain start: ${relay_limit.start} end: ${relay_limit.end}`);
 
-    const statemine_data = new ParachainData();
-    (await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => statemine_data.addData(x));
+        console.log(`Collecting block data for Parachain collators.`);
+        await parachain_api.isReady;
 
-    var invulnerables = await getInvulnerables(parachain_api);
-    statemine_data.setInvulnerables(invulnerables);
+        parachain_data = new ParachainData();
+        (await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => parachain_data.addData(x));
 
-    console.log(`Collecting era reward information for the relay-chain.`);
-    await relay_api.isReady;
+        var invulnerables = await getInvulnerables(parachain_api);
+        parachain_data.setInvulnerables(invulnerables);
 
-    const staking_info = await getEraInfo(relay_limit.start, relay_limit.end, relay_api, multibar,chain > 2 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
+        console.log(`Collecting era reward information for the relay-chain.`);
+        await relay_api.isReady;
 
-    multibar.stop();
+        staking_info = await getEraInfo(relay_limit.start, relay_limit.end, relay_api, multibar, chain > 2 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
 
-    const reward_collector = new RewardCollector(ema7, staking_info, manual_entries, statemine_data);
+        multibar.stop();
+        console.log(`${CHAIN_NAME} | Extrinsic Data:`)
+    } else {
+        console.log(`Manual Entries Only | Extrinsic Data:`)
+    }
+
+    const reward_collector = new RewardCollector(ema7, staking_info, manual_entries, parachain_data);
     //If the chain is > 2 then it is a Polkadot chain, submit 1, else 0
     const reward_hash = await reward_collector.getExtrinsic(chain > 2 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
 
-    console.log(`${CHAIN_NAME} | Extrinsic Data:`)
     console.log(reward_hash);
 
     process.exit(0);
 
-    //console.log(`Completed`);
 }
 
-async function getInvulnerables(api:ApiPromise):Promise<string[]>{
-   
+async function getInvulnerables(api: ApiPromise): Promise<string[]> {
+
     const invulnerables = await api.query.collatorSelection.invulnerables();
-   
+
     return JSON.parse(JSON.stringify(invulnerables.toJSON()));
-    
+
 }
 
 function getWSSDetails(chain: number): [string, string, string] {
@@ -146,10 +152,10 @@ async function getLimits(month: number, year: number, parachain_api: ApiPromise,
 async function collectParachainData(parachain_limit: BlockLimits, multibar: any, parachain_wss: string): Promise<BlockInfo[]> {
     var parachain_block_promises = [];
     var return_results: BlockInfo[] = [];
-  
+
     for (var i = parachain_limit.start; i < parachain_limit.end; i += Constants.PARALLEL_INCREMENTS) {
-       
-  
+
+
         var start = i;
         var end = start + Constants.PARALLEL_INCREMENTS;
         parachain_block_promises.push(getPartialBlockInfo(start, end, parachain_wss, multibar));
@@ -259,7 +265,7 @@ async function getPartialBlockInfo(start: number, end: number, parachain_wss: st
     const api = await ApiPromise.create({ provider: wsProviderParachain });
 
     await api.isReady;
-    
+
     const statemine_data_extract_progress = multibar.create(end - start, 0);
     statemine_data_extract_progress.increment();
 
