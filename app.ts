@@ -35,15 +35,15 @@ async function main() {
     var staking_info: EraReward[] = [];
     var parachain_data: ParachainData;
 
-    if (prompt(`Would you like to process chain blocks (y/n)?`) == "y") {
+    if (prompt(`Would you like to process chain blocks (y/n): `) == "y") {
         const [PARACHAIN_WSS, RELAY_CHAIN_WSS, CHAIN_NAME] = getWSSDetails(chain);
 
         //Statemine WSS
         const wsProviderParachain = new WsProvider(PARACHAIN_WSS);
-        const parachain_api = await ApiPromise.create({ provider: wsProviderParachain });
+        const parachain_api = await ApiPromise.create({ provider: wsProviderParachain , noInitWarn: true  });
         //Kusama WSS
         const wsProviderRelay = new WsProvider(RELAY_CHAIN_WSS);
-        const relay_api = await ApiPromise.create({ provider: wsProviderRelay });
+        const relay_api = await ApiPromise.create({ provider: wsProviderRelay , noInitWarn: true  });
 
         console.log(`Determining block limits for Relay-chain and Parachain`);
         const [parachain_limit, relay_limit] = await getLimits(month, year, parachain_api, relay_api);
@@ -262,7 +262,7 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
 async function getPartialBlockInfo(start: number, end: number, parachain_wss: string, multibar: any): Promise<BlockInfo[]> {
 
     const wsProviderParachain = new WsProvider(parachain_wss);
-    const api = await ApiPromise.create({ provider: wsProviderParachain });
+    const api = await ApiPromise.create({ provider: wsProviderParachain , noInitWarn: true });
 
     await api.isReady;
 
@@ -397,7 +397,7 @@ function getManualEntry(): ManualPayment {
         recipient: prompt(`Enter the recipient address: `),
         description: prompt(`Enter a description: `),
         value: parseFloat(prompt(`Enter a value for payment: `)),
-        isToken: prompt(`Is this in tokens (DOT/KSM)? otherwise fiat (y/n): `) == "y"
+        isToken: prompt(`Is the value for payment in tokens (DOT/KSM), if so select (y)? If not select (n) and it would be processed as fiat (y/n): `) == "y"
     }
 
 }

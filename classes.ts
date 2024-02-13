@@ -25,7 +25,7 @@ export class ParachainData {
     }
 
     public addData(info: BlockInfo) {
-  
+
         //Double check to ensure blocks aren't counted twice
         //Also don't reward collators in the no reward table
         if (this.previous_blocks.indexOf(info.number) < 0
@@ -64,6 +64,10 @@ export class ParachainData {
     public getCollators(): CollatorData[] {
         return this.collators;
     }
+
+}
+
+export interface Parachain {
 
 }
 
@@ -114,9 +118,10 @@ export class RewardCollector {
     public async getExtrinsicInfo(chain: Constants.RELAY): Promise<ExtrinsicInfo[]> {
         var results: ExtrinsicInfo[] = [];
         const wsProvider = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
-        const api = await ApiPromise.create({ provider: wsProvider });
+        const api = await ApiPromise.create({ provider: wsProvider , noInitWarn: true  });
 
-        const PLANKS = Constants.RELAY.POLKADOT ? Constants.POLKADOT_PLANKS : Constants.KUSAMA_PLANKS;
+        const PLANKS = chain == Constants.RELAY.POLKADOT ? Constants.POLKADOT_PLANKS : Constants.KUSAMA_PLANKS;
+        
         //Add manual entries
         this.manual_entries.map(x => results.push(
             {
@@ -126,40 +131,42 @@ export class RewardCollector {
             }
         ));
 
-        //Hosting reward
-        results.push(
-            {
-                recipient: Constants.HOSTING_RECIPIENT,
-                description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)}`,
-                value: (Constants.HOSTING_FEE / this.ema7) * PLANKS
-            }
-        );
-
-        //Calculate collator rewards
-        const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
-
-        const max = this.parachain_data.getMaxBlocks();
-        const collators = this.parachain_data.getCollators();
-
-        for (var i = 0; i < collators.length; i++) {
-            var collator = collators[i];
-            var ratio = collator.number_of_blocks / max;
-            var collator_name = await this.getIdentity(collator.collator, api);
-
-            var adjusted_staking_reward = ratio * staking_reward;
-            const adjusted_collator_reward = ratio * (Constants.COLLATOR_REWARD / this.ema7);
-
-            var invulnerable = this.parachain_data.getInvulnerables().indexOf(collator.collator) > -1;
-            adjusted_staking_reward = invulnerable ? 0 : adjusted_staking_reward;
-
+        if (this.parachain_data) {
+            //Hosting reward
             results.push(
                 {
-                    recipient: collator.collator,
-                    description: `${collator_name.name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${invulnerable ? 'Invul:0' : adjusted_staking_reward.toFixed(Constants.NUM_DECIMALS)}, CR: ${adjusted_collator_reward.toFixed(Constants.NUM_DECIMALS)}`,
-                    value: (adjusted_collator_reward + adjusted_staking_reward) * PLANKS
+                    recipient: Constants.HOSTING_RECIPIENT,
+                    description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)}`,
+                    value: (Constants.HOSTING_FEE / this.ema7) * PLANKS
                 }
             );
 
+            //Calculate collator rewards
+            const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
+
+            const max = this.parachain_data.getMaxBlocks();
+            const collators = this.parachain_data.getCollators();
+
+            for (var i = 0; i < collators.length; i++) {
+                var collator = collators[i];
+                var ratio = collator.number_of_blocks / max;
+                var collator_name = await this.getIdentity(collator.collator, api);
+
+                var adjusted_staking_reward = ratio * staking_reward;
+                const adjusted_collator_reward = ratio * (Constants.COLLATOR_REWARD / this.ema7);
+
+                var invulnerable = this.parachain_data.getInvulnerables().indexOf(collator.collator) > -1;
+                adjusted_staking_reward = invulnerable ? 0 : adjusted_staking_reward;
+
+                results.push(
+                    {
+                        recipient: collator.collator,
+                        description: `${collator_name.name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${invulnerable ? 'Invul:0' : adjusted_staking_reward.toFixed(Constants.NUM_DECIMALS)}, CR: ${adjusted_collator_reward.toFixed(Constants.NUM_DECIMALS)}`,
+                        value: (adjusted_collator_reward + adjusted_staking_reward) * PLANKS
+                    }
+                );
+
+            }
         }
 
         //Calculate curator rewards
@@ -190,7 +197,7 @@ export class RewardCollector {
     public async getExtrinsic(chain: Constants.RELAY): Promise<string> {
         const extrinsic_info = await this.getExtrinsicInfo(chain);
         const wsProviderRelay = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
-        const api = await ApiPromise.create({ provider: wsProviderRelay });
+        const api = await ApiPromise.create({ provider: wsProviderRelay, noInitWarn: true });
 
         //Gets the current child bounty counter
         var cb_count_codec = await api.query.childBounties.childBountyCount();
@@ -239,7 +246,6 @@ export class RewardCollector {
             parent_batch.push(inner_batch);
 
         }
-
 
         //Execute each individual batch, if one inner batch fails continue with the others.
         const final_batch = api.tx.utility.forceBatch(parent_batch);
