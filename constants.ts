@@ -67,6 +67,8 @@ export const DOT_CURATOR_ACCOUNT = `15NCSvkYjtf2G1fvtYVnLCSPmKiZk3ReX1AUWsSDD5oc
 
 //Hosting fee per parachain instance
 export const HOSTING_FEE = 25;
+export const RELAY_HOSTING_FEE = 40;
+export const CURATOR_HOSTING_FEE = 40;
 export const HOSTING_RECIPIENT = `J11Rp4mjz3vRb2DL51HqRGRjhuEQRyXgtuFskebXb8zMZ9s`;
 
 //Permissionless fees
@@ -80,6 +82,8 @@ export enum CHAINS {
     POLKADOT_BRIDGE_HUB = 4,
     POLKADOT_COLLECTIVES = 5
 }
+
+export const PARACHAINS = 5;
 
 export enum RELAY{
     KUSAMA,
