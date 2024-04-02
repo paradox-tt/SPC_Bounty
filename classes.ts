@@ -144,8 +144,8 @@ export class RewardCollector {
             results.push(
                 {
                     recipient: Constants.HOSTING_RECIPIENT,
-                    description: `1/${Constants.PARACHAINS} hosting fee for supporting relay chain RPC instances @ $${Constants.RELAY_HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)}`,
-                    value: ((Constants.RELAY_HOSTING_FEE / this.ema7) / Constants.PARACHAINS) * PLANKS
+                    description: `1/${Constants.PARACHAINS} hosting fee for supporting relay chain RPC instances @ $${(Constants.RELAY_HOSTING_FEE * 2).toFixed(Constants.NUM_DECIMALS)}`,
+                    value: (((Constants.RELAY_HOSTING_FEE * 2) / this.ema7) / Constants.PARACHAINS) * PLANKS
                 }
             );
 
