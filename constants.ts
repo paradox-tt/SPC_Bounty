@@ -7,8 +7,9 @@ export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
 
 export const PARACHAIN_BLOCK_TIME = 12;
 
-export const KSM_WSS = `ws://192.168.250.175:9944`;
-export const DOT_WSS = `ws://192.168.250.176:9944`
+//export const KSM_WSS = `ws://192.168.250.175:9944`;
+export const KSM_WSS = `wss://rpc-kusama.luckyfriday.io`;
+export const DOT_WSS = `ws://192.168.250.176:9944`;
 
 export const RELAY_BLOCK_TIME = 6;
 
