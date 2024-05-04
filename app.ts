@@ -333,7 +333,7 @@ async function getFirstBlockForMonth(month: number, year: number, api: ApiPromis
     var block_difference = estimateBlockDifference(month, year, new Date(), new Date(year, month, 1), block_time);
 
     //Catering for new chains
-    if (block_difference < 0)
+    if ((current_block - block_difference) < 0)
         return 0;
 
     while (Math.abs(block_difference) > 50) {
