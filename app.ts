@@ -25,7 +25,7 @@ async function main() {
     const month = getInputVariable('Enter month', 1, 12);
     const year = getInputVariable('Enter year', new Date().getFullYear() - 1, null);
 
-    const chain = getInputVariable('1) Kusama-AssetHub 2) Kusama-BridgeHub 3) Polkadot-AssetHub 4) Polkadot-BridgeHub 5) Polkadot-Collectives', 1, 5);
+    const chain = getInputVariable('1) Kusama-AssetHub 2) Kusama-BridgeHub 3) Kusama-Coretime 4) Polkadot-AssetHub 5) Polkadot-BridgeHub 6) Polkadot-Collectives', 1, 6);
 
     const ema7 = parseFloat(prompt(`Enter the EMA7 for use during the period above: `));
 
@@ -40,10 +40,10 @@ async function main() {
 
         //Statemine WSS
         const wsProviderParachain = new WsProvider(PARACHAIN_WSS);
-        const parachain_api = await ApiPromise.create({ provider: wsProviderParachain , noInitWarn: true  });
+        const parachain_api = await ApiPromise.create({ provider: wsProviderParachain, noInitWarn: true });
         //Kusama WSS
         const wsProviderRelay = new WsProvider(RELAY_CHAIN_WSS);
-        const relay_api = await ApiPromise.create({ provider: wsProviderRelay , noInitWarn: true  });
+        const relay_api = await ApiPromise.create({ provider: wsProviderRelay, noInitWarn: true });
 
         console.log(`Determining block limits for Relay-chain and Parachain`);
         const [parachain_limit, relay_limit] = await getLimits(month, year, parachain_api, relay_api);
@@ -104,6 +104,11 @@ function getWSSDetails(chain: number): [string, string, string] {
             parachain_wss = Constants.KSM_BRIDGEHUB_WSS;
             relay_chain_wss = Constants.KSM_WSS;
             chain_name = `Kusama Bridge Hub`;
+            break;
+        case Constants.CHAINS.KUSAMA_CORETIME:
+            parachain_wss = Constants.KSM_CORETIME_WSS;
+            relay_chain_wss = Constants.KSM_WSS;
+            chain_name = `Kusama Coretime`;
             break;
         case Constants.CHAINS.POLKADOT_ASSET_HUB:
             parachain_wss = Constants.DOT_ASSETHUB_WSS;
@@ -262,7 +267,7 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
 async function getPartialBlockInfo(start: number, end: number, parachain_wss: string, multibar: any): Promise<BlockInfo[]> {
 
     const wsProviderParachain = new WsProvider(parachain_wss);
-    const api = await ApiPromise.create({ provider: wsProviderParachain , noInitWarn: true });
+    const api = await ApiPromise.create({ provider: wsProviderParachain, noInitWarn: true });
 
     await api.isReady;
 
@@ -324,8 +329,13 @@ async function getFirstBlockForMonth(month: number, year: number, api: ApiPromis
     var current_block = header.number.toNumber()
     var block_info = await getBlockInfo(api, current_block);
 
-    //Make a guess as to the last block of the month
+    //Make a guess as to the first block of the month
     var block_difference = estimateBlockDifference(month, year, new Date(), new Date(year, month, 1), block_time);
+
+    //Catering for new chains
+    if (block_difference < 0)
+        return 0;
+
     while (Math.abs(block_difference) > 50) {
         current_block = current_block - block_difference;
         block_info = await getBlockInfo(api, current_block);

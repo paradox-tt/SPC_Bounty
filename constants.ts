@@ -1,5 +1,6 @@
 export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
 export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
+export const KSM_CORETIME_WSS = `ws://192.168.250.111:9944`;
 
 export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
 export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
@@ -9,7 +10,7 @@ export const PARACHAIN_BLOCK_TIME = 12;
 
 //export const KSM_WSS = `ws://192.168.250.175:9944`;
 export const KSM_WSS = `wss://rpc-kusama.luckyfriday.io`;
-export const DOT_WSS = `ws://192.168.250.176:9944`;
+export const DOT_WSS = `wss://rpc-polkadot.luckyfriday.io`;
 
 export const RELAY_BLOCK_TIME = 6;
 
@@ -51,7 +52,10 @@ export const NO_REWARD_COLLATORS = [
     'JL21EURyqQxJk9inVW7iuexJNzzuV7HpZJVxQrY8BzwFiTJ',
     //Kusama BridgeHub
     'DQkekNBt8g6D7bPUEqhgfujADxzzfivr1qQZJkeGzAqnEzF',
-    'HbUc5qrLtKAZvasioiTSf1CunaN2SyEwvfsgMuYQjXA5sfk'
+    'HbUc5qrLtKAZvasioiTSf1CunaN2SyEwvfsgMuYQjXA5sfk',
+    //Kusama Coretime
+    'Cx9Uu2sxp3Xt1QBUbGQo7j3imTvjWJrqPF1PApDoy6UVkWP',
+    'HRn3a4qLmv1ejBHvEbnjaiEWjt154iFi2Wde7bXKGUwGvtL'
 ]
 //Curator's reward as a percentage of the final
 export const CURATOR_REWARD = 0.05
@@ -70,7 +74,8 @@ export const DOT_CURATOR_ACCOUNT = `15NCSvkYjtf2G1fvtYVnLCSPmKiZk3ReX1AUWsSDD5oc
 export const HOSTING_FEE = 25;
 export const RELAY_HOSTING_FEE = 40;
 export const CURATOR_HOSTING_FEE = 40;
-export const HOSTING_RECIPIENT = `J11Rp4mjz3vRb2DL51HqRGRjhuEQRyXgtuFskebXb8zMZ9s`;
+export const HOSTING_RECIPIENT_KSM = `J11Rp4mjz3vRb2DL51HqRGRjhuEQRyXgtuFskebXb8zMZ9s`;
+export const HOSTING_RECIPIENT_DOT = `16WWmr2Xqgy5fna35GsNHXMU7vDBM12gzHCFGibQjSmKpAN`;
 
 //Permissionless fees
 export const KSM_PERMISSIONLESS = 50;
@@ -79,9 +84,10 @@ export const DOT_PERMISSIONLESS = 1000;
 export enum CHAINS {
     KUSAMA_ASSET_HUB = 1,
     KUSAMA_BRIDGE_HUB = 2,
-    POLKADOT_ASSET_HUB = 3,
-    POLKADOT_BRIDGE_HUB = 4,
-    POLKADOT_COLLECTIVES = 5
+    KUSAMA_CORETIME = 3,
+    POLKADOT_ASSET_HUB = 4,
+    POLKADOT_BRIDGE_HUB = 5,
+    POLKADOT_COLLECTIVES = 6
 }
 
 export const PARACHAINS = 5;

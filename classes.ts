@@ -120,7 +120,8 @@ export class RewardCollector {
         const wsProvider = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
         const api = await ApiPromise.create({ provider: wsProvider, noInitWarn: true });
 
-        const PLANKS = chain == Constants.RELAY.POLKADOT ? Constants.POLKADOT_PLANKS : Constants.KUSAMA_PLANKS;
+        const PLANKS = (chain == Constants.RELAY.POLKADOT) ? Constants.POLKADOT_PLANKS : Constants.KUSAMA_PLANKS;
+        const HOSTING_RECIPIENT = (chain == Constants.RELAY.POLKADOT) ? Constants.HOSTING_RECIPIENT_DOT : Constants.HOSTING_RECIPIENT_KSM;
 
         //Add manual entries
         this.manual_entries.map(x => results.push(
@@ -135,25 +136,11 @@ export class RewardCollector {
             //Hosting reward
             results.push(
                 {
-                    recipient: Constants.HOSTING_RECIPIENT,
-                    description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)}`,
-                    value: (Constants.HOSTING_FEE / this.ema7) * PLANKS
-                }
-            );
-
-            results.push(
-                {
-                    recipient: Constants.HOSTING_RECIPIENT,
-                    description: `1/${Constants.PARACHAINS} hosting fee for supporting relay chain RPC instances @ $${(Constants.RELAY_HOSTING_FEE * 2).toFixed(Constants.NUM_DECIMALS)}`,
-                    value: (((Constants.RELAY_HOSTING_FEE * 2) / this.ema7) / Constants.PARACHAINS) * PLANKS
-                }
-            );
-
-            results.push(
-                {
-                    recipient: Constants.HOSTING_RECIPIENT,
-                    description: `1/${Constants.PARACHAINS} hosting fee for curator instance @ $${Constants.CURATOR_HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)}`,
-                    value: ((Constants.CURATOR_HOSTING_FEE / this.ema7) / Constants.PARACHAINS) * PLANKS
+                    recipient: HOSTING_RECIPIENT,
+                    description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)} 
+                                   + 1/${Constants.PARACHAINS} hosting fee for supporting relay chain RPC instances @ $${(Constants.RELAY_HOSTING_FEE * 2).toFixed(Constants.NUM_DECIMALS)} 
+                                   + 1/${Constants.PARACHAINS} hosting fee for curator instance @ $${Constants.CURATOR_HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)}`,
+                    value: ((Constants.HOSTING_FEE / this.ema7) + (((Constants.RELAY_HOSTING_FEE * 2) / this.ema7) / Constants.PARACHAINS) + ((Constants.CURATOR_HOSTING_FEE / this.ema7) / Constants.PARACHAINS)) * PLANKS
                 }
             );
 
