@@ -427,6 +427,6 @@ async function getBlockInfo(api: ApiPromise, block: number): Promise<BlockInfo> 
         hash: blockhash.toString(),
         number: block,
         date: new Date(time.toNumber()),
-        author: header.author!.toString()
+        author: header.author ? header.author.toString() : 'unknown'
     }
 }
