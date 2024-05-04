@@ -1,6 +1,6 @@
 export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
 export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
-export const KSM_CORETIME_WSS = `ws://192.168.250.111:9944`;
+export const KSM_CORETIME_WSS = `ws://192.168.250.211:9944`;
 
 export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
 export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
