@@ -2,9 +2,15 @@ export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
 export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
 export const KSM_CORETIME_WSS = `ws://192.168.250.211:9944`;
 
-export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
-export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
-export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
+
+
+export const DOT_ASSETHUB_WSS = `wss://sys.dotters.network/statemine`;
+export const DOT_BRIDGEHUB_WSS = `wss://sys.dotters.network/bridgehub-kusama`;
+export const DOT_COLLECTIVES_WSS = `wss://kusama-coretime-rpc.polkadot.io`;
+
+//export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
+//export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
+//export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
 
 export const PARACHAIN_BLOCK_TIME = 12;
 
@@ -19,7 +25,7 @@ export const POLKADOT_PLANKS = 10000000000;
 
 export const NUM_DECIMALS = 4;
 
-export const PARALLEL_INCREMENTS = 10000;
+export const PARALLEL_INCREMENTS = 100;
 
 //Collator reward in fiat
 export const COLLATOR_REWARD = 300.00;

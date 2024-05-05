@@ -34,8 +34,11 @@ export interface ExtrinsicInfo{
     value:number
 }
 
-export interface Identity{
-    name:string,
-    verified:boolean,
-    sub:string
-}
+export interface Identity {
+    address: string
+    email: string
+    matrix: string
+    twitter: string
+    name: string
+    sub: string
+  }

@@ -73,7 +73,7 @@ async function main() {
 
     const reward_collector = new RewardCollector(ema7, staking_info, manual_entries, parachain_data);
     //If the chain is > 2 then it is a Polkadot chain, submit 1, else 0
-    const reward_hash = await reward_collector.getExtrinsic(chain > 2 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
+    const reward_hash = await reward_collector.getExtrinsic(chain > 3 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
 
     console.log(reward_hash);
 

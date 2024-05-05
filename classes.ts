@@ -3,6 +3,8 @@ import * as Constants from './constants';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { Codec } from '@polkadot/types-codec/types/codec';
 import "@polkadot/api-augment";
+import fs from 'fs';
+const { encodeAddress } = require("@polkadot/keyring");
 
 export class ParachainData {
 
@@ -153,7 +155,7 @@ export class RewardCollector {
             for (var i = 0; i < collators.length; i++) {
                 var collator = collators[i];
                 var ratio = collator.number_of_blocks / max;
-                var collator_name = await this.getIdentity(collator.collator, api);
+                var collator_name = await this.getIdentity(collator.collator, chain);
 
                 var adjusted_staking_reward = ratio * staking_reward;
                 const adjusted_collator_reward = ratio * (Constants.COLLATOR_REWARD / this.ema7);
@@ -164,7 +166,7 @@ export class RewardCollector {
                 results.push(
                     {
                         recipient: collator.collator,
-                        description: `${collator_name.name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${invulnerable ? 'Invul:0' : adjusted_staking_reward.toFixed(Constants.NUM_DECIMALS)}, CR: ${adjusted_collator_reward.toFixed(Constants.NUM_DECIMALS)}`,
+                        description: `${collator_name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${invulnerable ? 'Invul:0' : adjusted_staking_reward.toFixed(Constants.NUM_DECIMALS)}, CR: ${adjusted_collator_reward.toFixed(Constants.NUM_DECIMALS)}`,
                         value: (adjusted_collator_reward + adjusted_staking_reward) * PLANKS
                     }
                 );
@@ -183,12 +185,12 @@ export class RewardCollector {
         var curators = chain == Constants.RELAY.POLKADOT ? Constants.DOT_CURATORS : Constants.KSM_CURATORS;
 
         for (var i = 0; i < curators.length; i++) {
-            var curator = await this.getIdentity(curators[i], api);
+            var curator = await this.getIdentity(curators[i], chain);
 
             results.push(
                 {
                     recipient: curators[i],
-                    description: `Reward for curator (${curator.name}) as a portion from total ${(total_reward / PLANKS).toFixed(Constants.NUM_DECIMALS)}`,
+                    description: `Reward for curator (${curator}) as a portion from total ${(total_reward / PLANKS).toFixed(Constants.NUM_DECIMALS)}`,
                     value: ((total_reward * Constants.CURATOR_REWARD) / curators.length)
                 }
             )
@@ -256,43 +258,28 @@ export class RewardCollector {
         return final_batch.toHex();
     }
 
-    private async getIdentity(addr: string, api: ApiPromise): Promise<Identity> {
+    private getIdentity(addr: string, chain: Constants.RELAY): string {
 
-        let identity, verified, sub;
-        identity = await api.query.identity.identityOf(addr);
+        var identities: Identity[] = [];
 
-        if (!identity.isSome) {
-            identity = await api.query.identity.superOf(addr);
-            if (!identity.isSome) return { name: addr, verified: false, sub: "" };
+        if (chain == Constants.RELAY.POLKADOT) {
+            identities = JSON.parse(fs.readFileSync('polkadot-identities.json', 'utf-8'));
+        }else{
+            identities = JSON.parse(fs.readFileSync('kusama-identities.json', 'utf-8'));
+        }
+     
+        var identity:Identity = identities.find(x=>x.address==encodeAddress(addr,42));
 
-            const subRaw = identity.toJSON()[1].raw;
-            if (subRaw && subRaw.substring(0, 2) === "0x") {
-                sub = this.hex2a(subRaw.substring(2)).trim();
-            } else {
-                sub = subRaw;
+        if(identity){
+            if(identity.sub){
+                return `${identity.name}\\${identity.sub}`;
+            }else{
+                return identity.name
             }
-            const superAddress = identity.toJSON()[0];
-            identity = await api.query.identity.identityOf(superAddress);
+        }else{
+            return addr
         }
 
-
-        const raw = identity.toJSON().info.display.raw;
-        const { judgements } = identity.unwrap();
-        for (const judgement of judgements) {
-            const status = judgement[1];
-            if (status.isReasonable || status.isKnownGood) {
-                verified = status.isReasonable || status.isKnownGood;
-                continue;
-            }
-        }
-
-        if (raw && raw.substring(0, 2) === "0x") {
-            return {
-                name: this.hex2a(raw.substring(2)).replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, ''),
-                verified: verified,
-                sub: sub
-            };
-        } else return { name: raw, verified: verified, sub: sub };
     };
 
     private hex2a(hex: string): string {
@@ -312,4 +299,5 @@ export class RewardCollector {
         const res = JSON.parse(item.toString());
         return res;
     }
+
 }
