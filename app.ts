@@ -247,7 +247,7 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
 
     var divisor = new BN(PLANKS);
 
-    const erasStakers = await api_at.query.staking.erasStakers.entries(era);
+    const erasStakers = await api_at.query.staking.erasStakersOverview.entries(era);
     const erasValidatorReward = await api_at.query.staking.erasValidatorReward(era);
 
     const reward = erasValidatorReward.unwrapOrDefault().div(divisor);
@@ -255,7 +255,7 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
     var total_stake = new BN(0);
 
     for (var i = 0; i < erasStakers.length; i++) {
-        total_stake = total_stake.add(erasStakers[i][1].total.toBn());
+        total_stake = total_stake.add(erasStakers[i][1].value.total.toBn());
     }
 
     total_stake = total_stake.div(divisor);
