@@ -139,9 +139,7 @@ export class RewardCollector {
             results.push(
                 {
                     recipient: HOSTING_RECIPIENT,
-                    description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)} 
-                                   + 1/${Constants.PARACHAINS} hosting fee for supporting relay chain RPC instances @ $${(Constants.RELAY_HOSTING_FEE * 2).toFixed(Constants.NUM_DECIMALS)} 
-                                   + 1/${Constants.PARACHAINS} hosting fee for curator instance @ $${Constants.CURATOR_HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)}`,
+                    description: `Hosting fee for Curator RPC instance @ $${Constants.HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)} + 1/${Constants.PARACHAINS} hosting fee for supporting relay chain RPC instances @ $${(Constants.RELAY_HOSTING_FEE * 2).toFixed(Constants.NUM_DECIMALS)} + 1/${Constants.PARACHAINS.toString()} hosting fee for curator instance @ $${Constants.CURATOR_HOSTING_FEE.toFixed(Constants.NUM_DECIMALS)}`,
                     value: ((Constants.HOSTING_FEE / this.ema7) + (((Constants.RELAY_HOSTING_FEE * 2) / this.ema7) / Constants.PARACHAINS) + ((Constants.CURATOR_HOSTING_FEE / this.ema7) / Constants.PARACHAINS)) * PLANKS
                 }
             );
@@ -166,7 +164,7 @@ export class RewardCollector {
                 results.push(
                     {
                         recipient: collator.collator,
-                        description: `${collator_name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${invulnerable ? 'Invul:0' : adjusted_staking_reward.toFixed(Constants.NUM_DECIMALS)}, CR: ${adjusted_collator_reward.toFixed(Constants.NUM_DECIMALS)}`,
+                        description: `${collator_name} produced ${collator.number_of_blocks}/${max} blocks; SR: ${invulnerable ? '0 (Invulnerable)' : adjusted_staking_reward.toFixed(Constants.NUM_DECIMALS)}, CR: ${adjusted_collator_reward.toFixed(Constants.NUM_DECIMALS)}`,
                         value: (adjusted_collator_reward + adjusted_staking_reward) * PLANKS
                     }
                 );

@@ -35,8 +35,10 @@ async function main() {
     var staking_info: EraReward[] = [];
     var parachain_data: ParachainData;
 
+    var PARACHAIN_WSS, RELAY_CHAIN_WSS, CHAIN_NAME, RELAY_CHAIN;
+
     if (prompt(`Would you like to process chain blocks (y/n): `) == "y") {
-        const [PARACHAIN_WSS, RELAY_CHAIN_WSS, CHAIN_NAME] = getWSSDetails(chain);
+        [PARACHAIN_WSS, RELAY_CHAIN_WSS, CHAIN_NAME, RELAY_CHAIN] = getWSSDetails(chain);
 
         //Statemine WSS
         const wsProviderParachain = new WsProvider(PARACHAIN_WSS);
@@ -63,8 +65,8 @@ async function main() {
         console.log(`Collecting era reward information for the relay-chain.`);
         await relay_api.isReady;
 
-        staking_info = await getEraInfo(relay_limit.start, relay_limit.end, relay_api, multibar, chain > 2 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
-        
+        staking_info = await getEraInfo(relay_limit.start, relay_limit.end, relay_api, multibar, RELAY_CHAIN);
+
         multibar.stop();
         console.log(`${CHAIN_NAME} | Extrinsic Data:`)
     } else {
@@ -73,7 +75,7 @@ async function main() {
 
     const reward_collector = new RewardCollector(ema7, staking_info, manual_entries, parachain_data);
     //If the chain is > 2 then it is a Polkadot chain, submit 1, else 0
-    const reward_hash = await reward_collector.getExtrinsic(chain > 3 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
+    const reward_hash = await reward_collector.getExtrinsic(RELAY_CHAIN);
 
     console.log(reward_hash);
 
@@ -89,40 +91,35 @@ async function getInvulnerables(api: ApiPromise): Promise<string[]> {
 
 }
 
-function getWSSDetails(chain: number): [string, string, string] {
+function getWSSDetails(chain: number): [string, string, string, Constants.RELAY] {
     var parachain_wss: string;
     var relay_chain_wss: string;
-    var chain_name: string
+    var chain_name: string;
+    var relay_chain: Constants.RELAY;
 
     switch (chain) {
         case Constants.CHAINS.KUSAMA_ASSET_HUB:
             parachain_wss = Constants.KSM_ASSETHUB_WSS;
-            relay_chain_wss = Constants.KSM_WSS;
             chain_name = `Kusama Asset Hub`;
             break;
         case Constants.CHAINS.KUSAMA_BRIDGE_HUB:
             parachain_wss = Constants.KSM_BRIDGEHUB_WSS;
-            relay_chain_wss = Constants.KSM_WSS;
             chain_name = `Kusama Bridge Hub`;
             break;
         case Constants.CHAINS.KUSAMA_CORETIME:
             parachain_wss = Constants.KSM_CORETIME_WSS;
-            relay_chain_wss = Constants.KSM_WSS;
             chain_name = `Kusama Coretime`;
             break;
         case Constants.CHAINS.POLKADOT_ASSET_HUB:
             parachain_wss = Constants.DOT_ASSETHUB_WSS;
-            relay_chain_wss = Constants.DOT_WSS;
             chain_name = `Polkadot Asset Hub`;
             break;
         case Constants.CHAINS.POLKADOT_BRIDGE_HUB:
             parachain_wss = Constants.DOT_BRIDGEHUB_WSS;
-            relay_chain_wss = Constants.DOT_WSS;
             chain_name = `Polkadot Bridge Hub`;
             break;
         case Constants.CHAINS.POLKADOT_COLLECTIVES:
             parachain_wss = Constants.DOT_COLLECTIVES_WSS;
-            relay_chain_wss = Constants.DOT_WSS;
             chain_name = `Polkadot Collectives`;
             break;
         default:
@@ -132,7 +129,10 @@ function getWSSDetails(chain: number): [string, string, string] {
             break;
     }
 
-    return [parachain_wss, relay_chain_wss, chain_name];
+    relay_chain_wss = chain_name.indexOf("Polkadot") == 0 ? Constants.DOT_WSS : Constants.KSM_WSS;
+    relay_chain = chain_name.indexOf("Polkadot") == 0 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA;
+
+    return [parachain_wss, relay_chain_wss, chain_name, relay_chain];
 }
 
 async function getLimits(month: number, year: number, parachain_api: ApiPromise, relay_api: ApiPromise) {
@@ -252,21 +252,21 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
 
     var total_stake = new BN(0);
     const era_stakers_old = await api_at.query.staking.erasStakers.entries(era)
-    var era_stakers: any 
+    var era_stakers: any
 
-    if(era_stakers_old.length==0){
+    if (era_stakers_old.length == 0) {
         era_stakers = await api_at.query.staking.erasStakersOverview.entries(era);
-    }else{
+    } else {
         era_stakers = era_stakers_old;
     }
 
     for (var i = 0; i < era_stakers.length; i++) {
-        if(era_stakers_old.length==0){
+        if (era_stakers_old.length == 0) {
             total_stake = total_stake.add(stringToBN(era_stakers[i][1].value.total.toString()));
-        }else{
+        } else {
             total_stake = total_stake.add(stringToBN(era_stakers[i][1].total.toString()));
         }
-       
+
     }
 
     total_stake = total_stake.div(divisor);
@@ -275,8 +275,8 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
 
 }
 
- function stringToBN(value: string) {
-        
+function stringToBN(value: string) {
+
     if (value.indexOf('0x') == 0) {
         return new BN(value.substring(2), 16);
     } else {

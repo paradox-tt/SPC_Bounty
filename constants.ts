@@ -87,6 +87,10 @@ export const HOSTING_RECIPIENT_DOT = `16WWmr2Xqgy5fna35GsNHXMU7vDBM12gzHCFGibQjS
 export const KSM_PERMISSIONLESS = 50;
 export const DOT_PERMISSIONLESS = 1000;
 
+
+/*
+To add a new chain, insert entry below and ammend getWSSDetails() in app.ts
+*/
 export enum CHAINS {
     KUSAMA_ASSET_HUB = 1,
     KUSAMA_BRIDGE_HUB = 2,
