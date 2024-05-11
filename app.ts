@@ -55,7 +55,7 @@ async function main() {
         await parachain_api.isReady;
 
         parachain_data = new ParachainData();
-        (await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => parachain_data.addData(x));
+        //(await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => parachain_data.addData(x));
 
         var invulnerables = await getInvulnerables(parachain_api);
         parachain_data.setInvulnerables(invulnerables);
@@ -64,7 +64,7 @@ async function main() {
         await relay_api.isReady;
 
         staking_info = await getEraInfo(relay_limit.start, relay_limit.end, relay_api, multibar, chain > 2 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA);
-
+        
         multibar.stop();
         console.log(`${CHAIN_NAME} | Extrinsic Data:`)
     } else {
@@ -173,7 +173,6 @@ async function collectParachainData(parachain_limit: BlockLimits, multibar: any,
 
     console.log(`Processing each block`)
 
-
     await Promise.all(parachain_block_promises).then(results => {
         for (var i = 0; i < parachain_block_promises.length; i++)
             for (var j = 0; j < results[i].length; j++)
@@ -246,22 +245,44 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
     const PLANKS = Constants.RELAY.POLKADOT ? Constants.POLKADOT_PLANKS : Constants.KUSAMA_PLANKS;
 
     var divisor = new BN(PLANKS);
+    console.log(era);
 
-    const erasStakers = await api_at.query.staking.erasStakersOverview.entries(era);
     const erasValidatorReward = await api_at.query.staking.erasValidatorReward(era);
 
     const reward = erasValidatorReward.unwrapOrDefault().div(divisor);
 
     var total_stake = new BN(0);
+    const era_stakers_old = await api_at.query.staking.erasStakers.entries(era)
+    var era_stakers: any 
 
-    for (var i = 0; i < erasStakers.length; i++) {
-        total_stake = total_stake.add(erasStakers[i][1].value.total.toBn());
+    if(era_stakers_old.length==0){
+        era_stakers = await api_at.query.staking.erasStakersOverview.entries(era);
+    }else{
+        era_stakers = era_stakers_old;
+    }
+
+    for (var i = 0; i < era_stakers.length; i++) {
+        if(era_stakers_old.length==0){
+            total_stake = total_stake.add(stringToBN(era_stakers[i][1].value.total.toString()));
+        }else{
+            total_stake = total_stake.add(stringToBN(era_stakers[i][1].total.toString()));
+        }
+       
     }
 
     total_stake = total_stake.div(divisor);
 
     return new EraReward(era, total_stake.toNumber(), reward.toNumber(), relay);
 
+}
+
+ function stringToBN(value: string) {
+        
+    if (value.indexOf('0x') == 0) {
+        return new BN(value.substring(2), 16);
+    } else {
+        return new BN(value, 10);
+    }
 }
 
 async function getPartialBlockInfo(start: number, end: number, parachain_wss: string, multibar: any): Promise<BlockInfo[]> {
