@@ -55,7 +55,7 @@ async function main() {
         await parachain_api.isReady;
 
         parachain_data = new ParachainData();
-        //(await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => parachain_data.addData(x));
+        (await collectParachainData(parachain_limit, multibar, PARACHAIN_WSS)).map(x => parachain_data.addData(x));
 
         var invulnerables = await getInvulnerables(parachain_api);
         parachain_data.setInvulnerables(invulnerables);
@@ -245,7 +245,6 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
     const PLANKS = Constants.RELAY.POLKADOT ? Constants.POLKADOT_PLANKS : Constants.KUSAMA_PLANKS;
 
     var divisor = new BN(PLANKS);
-    console.log(era);
 
     const erasValidatorReward = await api_at.query.staking.erasValidatorReward(era);
 
