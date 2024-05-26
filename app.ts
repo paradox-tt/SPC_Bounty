@@ -70,7 +70,8 @@ async function main() {
         multibar.stop();
         console.log(`${CHAIN_NAME} | Extrinsic Data:`)
     } else {
-        console.log(`Manual Entries Only | Extrinsic Data:`)
+        console.log(`Manual Entries Only | Extrinsic Data:`);
+        RELAY_CHAIN = chain > 3 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA;
     }
 
     const reward_collector = new RewardCollector(ema7, staking_info, manual_entries, parachain_data);
