@@ -25,7 +25,7 @@ async function main() {
     const month = getInputVariable('Enter month', 1, 12);
     const year = getInputVariable('Enter year', new Date().getFullYear() - 1, null);
 
-    const chain = getInputVariable('1) Kusama-AssetHub 2) Kusama-BridgeHub 3) Kusama-Coretime 4) Polkadot-AssetHub 5) Polkadot-BridgeHub 6) Polkadot-Collectives', 1, 6);
+    const chain = getInputVariable('1) Kusama-AssetHub 2) Kusama-BridgeHub 3) Kusama-Coretime 4) Kusama-Coretime 5) Polkadot-AssetHub 6) Polkadot-BridgeHub 7) Polkadot-Collectives', 1, 7);
 
     const ema7 = parseFloat(prompt(`Enter the EMA7 for use during the period above: `));
 
@@ -71,7 +71,7 @@ async function main() {
         console.log(`${CHAIN_NAME} | Extrinsic Data:`)
     } else {
         console.log(`Manual Entries Only | Extrinsic Data:`);
-        RELAY_CHAIN = chain > 3 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA;
+        RELAY_CHAIN = chain > 4 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA;
     }
 
     const reward_collector = new RewardCollector(ema7, staking_info, manual_entries, parachain_data);
@@ -110,6 +110,10 @@ function getWSSDetails(chain: number): [string, string, string, Constants.RELAY]
         case Constants.CHAINS.KUSAMA_CORETIME:
             parachain_wss = Constants.KSM_CORETIME_WSS;
             chain_name = `Kusama Coretime`;
+            break;
+        case Constants.CHAINS.KUSAMA_PEOPLE:
+            parachain_wss = Constants.KSM_PEOPLE_WSS;
+            chain_name = `Kusama People`;
             break;
         case Constants.CHAINS.POLKADOT_ASSET_HUB:
             parachain_wss = Constants.DOT_ASSETHUB_WSS;

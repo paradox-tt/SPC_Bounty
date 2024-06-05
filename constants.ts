@@ -1,26 +1,29 @@
-export const KSM_ASSETHUB_WSS = `wss://sys.dotters.network/statemine`;
+/*export const KSM_ASSETHUB_WSS = `wss://sys.dotters.network/statemine`;
 export const KSM_BRIDGEHUB_WSS = `wss://sys.dotters.network/bridgehub-kusama`;
 export const KSM_CORETIME_WSS = `wss://sys.dotters.network/coretime-kusama`;
 
 export const DOT_ASSETHUB_WSS = `wss://sys.dotters.network/statemint`;
 export const DOT_BRIDGEHUB_WSS = `wss://sys.dotters.network/bridgehub-polkadot`;
 export const DOT_COLLECTIVES_WSS = `wss://sys.dotters.network/collectives-polkadot`;
+*/
 
-//export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
-//export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
-//export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
+export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
+export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
+export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
 
-//export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
-//export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
-//export const KSM_CORETIME_WSS = `ws://192.168.250.211:9944`;
+export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
+export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
+export const KSM_CORETIME_WSS = `ws://192.168.250.211:9944`;
+export const KSM_PEOPLE_WSS = `ws://192.168.250.215:9944`;
+
 
 export const PARACHAIN_BLOCK_TIME = 12;
 
 //export const KSM_WSS = `ws://192.168.250.175:9944`;
 //export const DOTWSS = `ws://192.168.250.176:9944`;
 
-export const KSM_WSS = `wss://rpc-kusama.luckyfriday.io`;
-export const DOT_WSS = `wss://rpc-polkadot.luckyfriday.io`;
+export const KSM_WSS = `ws://192.168.250.175:9944`;
+export const DOT_WSS = `ws://192.168.250.176:9944`;
 
 export const RELAY_BLOCK_TIME = 6;
 
@@ -99,12 +102,13 @@ export enum CHAINS {
     KUSAMA_ASSET_HUB = 1,
     KUSAMA_BRIDGE_HUB = 2,
     KUSAMA_CORETIME = 3,
-    POLKADOT_ASSET_HUB = 4,
-    POLKADOT_BRIDGE_HUB = 5,
-    POLKADOT_COLLECTIVES = 6
+    KUSAMA_PEOPLE = 4,
+    POLKADOT_ASSET_HUB = 5,
+    POLKADOT_BRIDGE_HUB = 6,
+    POLKADOT_COLLECTIVES = 7
 }
 
-export const PARACHAINS = 6;
+export const PARACHAINS = 7;
 
 export enum RELAY{
     KUSAMA,
