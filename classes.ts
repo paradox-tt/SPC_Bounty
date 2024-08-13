@@ -109,7 +109,6 @@ export class RewardCollector {
     private manual_entries: ManualPayment[];
     private parachain_data: ParachainData;
 
-
     public constructor(ema7: number, staking_info: EraReward[], manual_entries: ManualPayment[], parachain_data: ParachainData) {
         this.ema7 = ema7;
         this.staking_info = staking_info;

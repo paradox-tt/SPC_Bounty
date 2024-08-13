@@ -71,7 +71,7 @@ async function main() {
         console.log(`${CHAIN_NAME} | Extrinsic Data:`)
     } else {
         console.log(`Manual Entries Only | Extrinsic Data:`);
-        RELAY_CHAIN = chain > 4 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA;
+        RELAY_CHAIN = chain > 5 ? Constants.RELAY.POLKADOT : Constants.RELAY.KUSAMA;
     }
 
     const reward_collector = new RewardCollector(ema7, staking_info, manual_entries, parachain_data);
@@ -115,6 +115,10 @@ function getWSSDetails(chain: number): [string, string, string, Constants.RELAY]
             parachain_wss = Constants.KSM_PEOPLE_WSS;
             chain_name = `Kusama People`;
             break;
+        case Constants.CHAINS.KUSAMA_ENCOINTER:
+            parachain_wss = Constants.KSM_ENCOINTER_WSS;
+            chain_name = `Kusama Encointer`;
+            break;            
         case Constants.CHAINS.POLKADOT_ASSET_HUB:
             parachain_wss = Constants.DOT_ASSETHUB_WSS;
             chain_name = `Polkadot Asset Hub`;
@@ -127,6 +131,10 @@ function getWSSDetails(chain: number): [string, string, string, Constants.RELAY]
             parachain_wss = Constants.DOT_COLLECTIVES_WSS;
             chain_name = `Polkadot Collectives`;
             break;
+        case Constants.CHAINS.POLKADOT_PEOPLE:
+            parachain_wss = Constants.DOT_PEOPLE_WSS;
+            chain_name = `Polkadot People`;
+            break;            
         default:
             parachain_wss = ``;
             relay_chain_wss = ``;

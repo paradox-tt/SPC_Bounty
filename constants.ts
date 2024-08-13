@@ -10,12 +10,13 @@ export const DOT_COLLECTIVES_WSS = `wss://sys.dotters.network/collectives-polkad
 export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
 export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
 export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
+export const DOT_PEOPLE_WSS = `ws://192.168.250.219:9944`;
 
 export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
 export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
 export const KSM_CORETIME_WSS = `ws://192.168.250.211:9944`;
 export const KSM_PEOPLE_WSS = `ws://192.168.250.215:9944`;
-
+export const KSM_ENCOINTER_WSS = `ws://192.168.250.218:9944`;
 
 export const PARACHAIN_BLOCK_TIME = 12;
 
@@ -49,7 +50,7 @@ export const DOT_CURATORS = [
     '1pHpxvp2CYscDreozYQdBkJkUkLFQftxQTAwMs5M1a6GRBf'
 ];
 
-//Parity Collators over all chains
+//Parity & Encointer Collators over all chains
 export const NO_REWARD_COLLATORS = [
     //Polkadot AssetHub
     '12ixt2xmCJKuLXjM3gh1SY7C3aj4gBoBUqExTBTGhLCSATFw',
@@ -60,6 +61,9 @@ export const NO_REWARD_COLLATORS = [
     //Polkadot Collectives
     '1NvWYSswSt5v95m5z9JycedzTXEWJ9Zcgbu5BMnGAwiWUC9',
     '12n87jggYnvxvdHJaEiTAKZF7ZniJqxafYoKzEqfJCUDvJXP',
+    //Polkadot People
+    '14QhqUX7kux5PggbBwUFFZNuLvfX2CjzUQ9V56m4d4S67Pgn',
+    '14QhqUX7kux5PggbBwUFFZNuLvfX2CjzUQ9V56m4d4S67Pgn',
     //Kusama AssetHub
     'EPk1wv1TvVFfsiG73YLuLAtGacfPmojyJKvmifobBzUTxFv',
     'JL21EURyqQxJk9inVW7iuexJNzzuV7HpZJVxQrY8BzwFiTJ',
@@ -68,7 +72,18 @@ export const NO_REWARD_COLLATORS = [
     'HbUc5qrLtKAZvasioiTSf1CunaN2SyEwvfsgMuYQjXA5sfk',
     //Kusama Coretime
     'Cx9Uu2sxp3Xt1QBUbGQo7j3imTvjWJrqPF1PApDoy6UVkWP',
-    'HRn3a4qLmv1ejBHvEbnjaiEWjt154iFi2Wde7bXKGUwGvtL'
+    'HRn3a4qLmv1ejBHvEbnjaiEWjt154iFi2Wde7bXKGUwGvtL',
+    //Kusama People
+    'CbLd7BdUr8DqD4TciR1kH6w12bbHBCW9n2MHGCtbxq4U5ty',
+    'CuLgnS17KwfweeoN9y59YrhDG4pekfiY8qxieDaVTcVCjuP',
+    'E8X4LxU9zEiNVAyM95ERDeomMmwwqn7RBCuRMEZCfgFm3J1',
+    'HNrgbuMxf7VLwsMd6YjnNQM6fc7VVsaoNVaMYTCCfK3TRWJ',
+    //Kusama Encointer
+    'FG2C6WJWFdBNgKGDdS6oyhP1K9zHLNNzRtvAJNbmV1FybzD',
+    'Fsn4ArZxAtESoGmwnLVbiKPsrgjFNmGLLdVapjVPCD78mRA',
+    'G6z6FmKhw6dHJ8a5tetrzarbsVU4jF8LhoRFk211GryqAdw',
+    'GwDHvd1aToQRKa2b9rATV5igF99Bwr12Ko7jDZfPdNBTGT4'
+
 ]
 //Curator's reward as a percentage of the final
 export const CURATOR_REWARD = 0.05
@@ -103,12 +118,14 @@ export enum CHAINS {
     KUSAMA_BRIDGE_HUB = 2,
     KUSAMA_CORETIME = 3,
     KUSAMA_PEOPLE = 4,
-    POLKADOT_ASSET_HUB = 5,
-    POLKADOT_BRIDGE_HUB = 6,
-    POLKADOT_COLLECTIVES = 7
+    KUSAMA_ENCOINTER = 5,
+    POLKADOT_ASSET_HUB = 6,
+    POLKADOT_BRIDGE_HUB = 7,
+    POLKADOT_COLLECTIVES = 8,
+    POLKADOT_PEOPLE = 9
 }
 
-export const PARACHAINS = 7;
+export const PARACHAINS = 9;
 
 export enum RELAY{
     KUSAMA,
