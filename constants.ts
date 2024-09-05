@@ -128,7 +128,7 @@ export enum CHAINS {
     POLKADOT_CORETIME = 10
 }
 
-export const PARACHAINS = 10;
+export const PARACHAINS = 9;
 
 export enum RELAY{
     KUSAMA,
