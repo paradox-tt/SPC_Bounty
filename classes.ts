@@ -143,6 +143,17 @@ export class RewardCollector {
                 }
             );
 
+            //System Parachain Coordinator
+            if (chain == Constants.COORDINATOR_CHAIN) {
+                results.push(
+                    {
+                        recipient: Constants.COORDINATOR,
+                        description: `Partial fee for System Coordinator @ $${Constants.COORDINATOR_FEE.toFixed(Constants.NUM_DECIMALS)} split over $${(Constants.KSM_PARACHAINS)} parachains.`,
+                        value: ((Constants.COORDINATOR_FEE / this.ema7) / Constants.KSM_PARACHAINS) * PLANKS
+                    }
+                )
+            }
+
             //Calculate collator rewards
             const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
 
@@ -261,19 +272,19 @@ export class RewardCollector {
 
         if (chain == Constants.RELAY.POLKADOT) {
             identities = JSON.parse(fs.readFileSync('polkadot-identities.json', 'utf-8'));
-        }else{
+        } else {
             identities = JSON.parse(fs.readFileSync('kusama-identities.json', 'utf-8'));
         }
-     
-        var identity:Identity = identities.find(x=>x.address==encodeAddress(addr,42));
 
-        if(identity){
-            if(identity.sub){
+        var identity: Identity = identities.find(x => x.address == encodeAddress(addr, 42));
+
+        if (identity) {
+            if (identity.sub) {
                 return `${identity.name}\\${identity.sub}`;
-            }else{
+            } else {
                 return identity.name
             }
-        }else{
+        } else {
             return addr
         }
 

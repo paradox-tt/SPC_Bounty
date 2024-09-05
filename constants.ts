@@ -105,12 +105,10 @@ export const RELAY_HOSTING_FEE = 60;
 export const CURATOR_HOSTING_FEE = 60;
 export const HOSTING_RECIPIENT_KSM = `J11Rp4mjz3vRb2DL51HqRGRjhuEQRyXgtuFskebXb8zMZ9s`;
 export const HOSTING_RECIPIENT_DOT = `16WWmr2Xqgy5fna35GsNHXMU7vDBM12gzHCFGibQjSmKpAN`;
-export const COORDINATOR_FEE = 1080;
 
 //Permissionless fees
 export const KSM_PERMISSIONLESS = 50;
 export const DOT_PERMISSIONLESS = 1000;
-
 
 /*
 To add a new chain, insert entry below and ammend getWSSDetails() in app.ts
@@ -129,8 +127,15 @@ export enum CHAINS {
 }
 
 export const PARACHAINS = 9;
+export const DOT_PARACHAINS = 4;
+export const KSM_PARACHAINS = 5;
 
 export enum RELAY{
     KUSAMA,
     POLKADOT
 }
+
+//Coordinator details
+export const COORDINATOR = ``;
+export const COORDINATOR_FEE = 1080;
+export const COORDINATOR_CHAIN = RELAY.KUSAMA;
