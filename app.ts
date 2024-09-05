@@ -25,7 +25,7 @@ async function main() {
     const month = getInputVariable('Enter month', 1, 12);
     const year = getInputVariable('Enter year', new Date().getFullYear() - 1, null);
 
-    const chain = getInputVariable('1) Kusama-AssetHub 2) Kusama-BridgeHub 3) Kusama-Coretime 4) Kusama-People 5) Kusama-Encointer 6) Polkadot-AssetHub 7) Polkadot-BridgeHub 8) Polkadot-Collectives 9) Polkadot-People' , 1, 9);
+    const chain = getInputVariable('1) Kusama-AssetHub 2) Kusama-BridgeHub 3) Kusama-Coretime 4) Kusama-People 5) Kusama-Encointer 6) Polkadot-AssetHub 7) Polkadot-BridgeHub 8) Polkadot-Collectives 9) Polkadot-People 10) Polkadot-Coretime' , 1, 10);
 
     const ema7 = parseFloat(prompt(`Enter the EMA7 for use during the period above: `));
 

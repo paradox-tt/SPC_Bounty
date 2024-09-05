@@ -11,6 +11,7 @@ export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
 export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
 export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
 export const DOT_PEOPLE_WSS = `ws://192.168.250.219:9944`;
+export const DOT_CORETIME_WSS = `ws://192.168.250.219:9944`;
 
 export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
 export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
@@ -86,7 +87,7 @@ export const NO_REWARD_COLLATORS = [
 
 ]
 //Curator's reward as a percentage of the final
-export const CURATOR_REWARD = 0.05
+export const CURATOR_REWARD = 0.075
 
 export const KUSAMA_PARENT_BOUNTY_ID = 20;
 export const POLKADOT_PARENT_BOUNTY_ID = 32;
@@ -99,11 +100,12 @@ export const KSM_CURATOR_ACCOUNT = 'GsGcRLXWFcVnxUaWVE9ojJpnDNM9R7QNxYBrshWtnTco
 export const DOT_CURATOR_ACCOUNT = `15NCSvkYjtf2G1fvtYVnLCSPmKiZk3ReX1AUWsSDD5ocFVXa`;
 
 //Hosting fee per parachain instance
-export const HOSTING_FEE = 25;
-export const RELAY_HOSTING_FEE = 40;
-export const CURATOR_HOSTING_FEE = 40;
+export const HOSTING_FEE = 40;
+export const RELAY_HOSTING_FEE = 60;
+export const CURATOR_HOSTING_FEE = 60;
 export const HOSTING_RECIPIENT_KSM = `J11Rp4mjz3vRb2DL51HqRGRjhuEQRyXgtuFskebXb8zMZ9s`;
 export const HOSTING_RECIPIENT_DOT = `16WWmr2Xqgy5fna35GsNHXMU7vDBM12gzHCFGibQjSmKpAN`;
+export const COORDINATOR_FEE = 1080;
 
 //Permissionless fees
 export const KSM_PERMISSIONLESS = 50;
@@ -122,10 +124,11 @@ export enum CHAINS {
     POLKADOT_ASSET_HUB = 6,
     POLKADOT_BRIDGE_HUB = 7,
     POLKADOT_COLLECTIVES = 8,
-    POLKADOT_PEOPLE = 9
+    POLKADOT_PEOPLE = 9,
+    POLKADOT_CORETIME = 10
 }
 
-export const PARACHAINS = 9;
+export const PARACHAINS = 10;
 
 export enum RELAY{
     KUSAMA,
