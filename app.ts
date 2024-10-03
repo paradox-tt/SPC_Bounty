@@ -134,7 +134,11 @@ function getWSSDetails(chain: number): [string, string, string, Constants.RELAY]
         case Constants.CHAINS.POLKADOT_PEOPLE:
             parachain_wss = Constants.DOT_PEOPLE_WSS;
             chain_name = `Polkadot People`;
-            break;            
+            break;       
+        case Constants.CHAINS.POLKADOT_CORETIME:
+            parachain_wss = Constants.DOT_CORETIME_WSS;
+            chain_name = `Polkadot Coretime`
+            break;     
         default:
             parachain_wss = ``;
             relay_chain_wss = ``;
