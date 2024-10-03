@@ -11,7 +11,7 @@ export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
 export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
 export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
 export const DOT_PEOPLE_WSS = `ws://192.168.250.219:9944`;
-export const DOT_CORETIME_WSS = `ws://192.168.250.219:9944`;
+export const DOT_CORETIME_WSS = `ws://192.168.250.220:9944`;
 
 export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
 export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
@@ -65,6 +65,9 @@ export const NO_REWARD_COLLATORS = [
     //Polkadot People
     '14QhqUX7kux5PggbBwUFFZNuLvfX2CjzUQ9V56m4d4S67Pgn',
     '14QhqUX7kux5PggbBwUFFZNuLvfX2CjzUQ9V56m4d4S67Pgn',
+    //Polkadot Coretime
+    '13NAwtroa2efxgtih1oscJqjxcKpWJeQF8waWPTArBewi2CQ',
+    '13umUoWwGb765EPzMUrMmYTcEjKfNJiNyCDwdqAvCMzteGzi',
     //Kusama AssetHub
     'EPk1wv1TvVFfsiG73YLuLAtGacfPmojyJKvmifobBzUTxFv',
     'JL21EURyqQxJk9inVW7iuexJNzzuV7HpZJVxQrY8BzwFiTJ',
