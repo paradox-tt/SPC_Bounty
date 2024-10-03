@@ -148,7 +148,7 @@ export class RewardCollector {
                 results.push(
                     {
                         recipient: Constants.COORDINATOR,
-                        description: `Partial fee for System Coordinator @ $${Constants.COORDINATOR_FEE.toFixed(Constants.NUM_DECIMALS)} split over $${(Constants.KSM_PARACHAINS)} parachains.`,
+                        description: `Partial fee for System Coordinator @ $${Constants.COORDINATOR_FEE.toFixed(Constants.NUM_DECIMALS)} split over ${(Constants.KSM_PARACHAINS)} parachains.`,
                         value: ((Constants.COORDINATOR_FEE / this.ema7) / Constants.KSM_PARACHAINS) * PLANKS
                     }
                 )
@@ -269,6 +269,7 @@ export class RewardCollector {
     private getIdentity(addr: string, chain: Constants.RELAY): string {
 
         var identities: Identity[] = [];
+        var emojiStrip = require('emoji-strip');
 
         if (chain == Constants.RELAY.POLKADOT) {
             identities = JSON.parse(fs.readFileSync('polkadot-identities.json', 'utf-8'));
@@ -280,9 +281,9 @@ export class RewardCollector {
 
         if (identity) {
             if (identity.sub) {
-                return `${identity.name}\\${identity.sub}`;
+                return emojiStrip(`${identity.name}\\${identity.sub}`);
             } else {
-                return identity.name
+                return emojiStrip(identity.name)
             }
         } else {
             return addr

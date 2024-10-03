@@ -126,8 +126,8 @@ export enum CHAINS {
     POLKADOT_CORETIME = 10
 }
 
-export const PARACHAINS = 9;
-export const DOT_PARACHAINS = 4;
+export const PARACHAINS = 10;
+export const DOT_PARACHAINS = 5;
 export const KSM_PARACHAINS = 5;
 
 export enum RELAY{
@@ -136,6 +136,6 @@ export enum RELAY{
 }
 
 //Coordinator details
-export const COORDINATOR = ``;
+export const COORDINATOR = `HqRcfhH8VXMhuCk5JXe28WMgDDuW9MVDVNofe1nnTcefVZn`;
 export const COORDINATOR_FEE = 1080;
 export const COORDINATOR_CHAIN = RELAY.KUSAMA;
