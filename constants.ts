@@ -51,7 +51,7 @@ export const DOT_CURATORS = [
     '1pHpxvp2CYscDreozYQdBkJkUkLFQftxQTAwMs5M1a6GRBf'
 ];
 
-//Parity & Encointer Collators over all chains
+//Parity & Encointer Collators over all chains, plus mischief anon collators
 export const NO_REWARD_COLLATORS = [
     //Polkadot AssetHub
     '12ixt2xmCJKuLXjM3gh1SY7C3aj4gBoBUqExTBTGhLCSATFw',
@@ -86,9 +86,11 @@ export const NO_REWARD_COLLATORS = [
     'FG2C6WJWFdBNgKGDdS6oyhP1K9zHLNNzRtvAJNbmV1FybzD',
     'Fsn4ArZxAtESoGmwnLVbiKPsrgjFNmGLLdVapjVPCD78mRA',
     'G6z6FmKhw6dHJ8a5tetrzarbsVU4jF8LhoRFk211GryqAdw',
-    'GwDHvd1aToQRKa2b9rATV5igF99Bwr12Ko7jDZfPdNBTGT4'
-
+    'GwDHvd1aToQRKa2b9rATV5igF99Bwr12Ko7jDZfPdNBTGT4',
+    //RAVEN (exluded due to identity theft)
+    'FRt6xsJzQp8isxEXTRGVfymNaosKbWihPCqy7XFKd9v5y6X'
 ]
+
 //Curator's reward as a percentage of the final
 export const CURATOR_REWARD = 0.075
 
