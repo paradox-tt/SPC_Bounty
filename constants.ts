@@ -11,7 +11,7 @@ export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
 export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
 export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
 export const DOT_PEOPLE_WSS = `ws://192.168.250.219:9944`;
-export const DOT_CORETIME_WSS = `ws://192.168.250.219:9944`;
+export const DOT_CORETIME_WSS = `ws://192.168.250.220:9944`;
 
 export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
 export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
@@ -51,7 +51,7 @@ export const DOT_CURATORS = [
     '1pHpxvp2CYscDreozYQdBkJkUkLFQftxQTAwMs5M1a6GRBf'
 ];
 
-//Parity & Encointer Collators over all chains
+//Parity & Encointer Collators over all chains, plus mischief anon collators
 export const NO_REWARD_COLLATORS = [
     //Polkadot AssetHub
     '12ixt2xmCJKuLXjM3gh1SY7C3aj4gBoBUqExTBTGhLCSATFw',
@@ -65,6 +65,9 @@ export const NO_REWARD_COLLATORS = [
     //Polkadot People
     '14QhqUX7kux5PggbBwUFFZNuLvfX2CjzUQ9V56m4d4S67Pgn',
     '14QhqUX7kux5PggbBwUFFZNuLvfX2CjzUQ9V56m4d4S67Pgn',
+    //Polkadot Coretime
+    '13NAwtroa2efxgtih1oscJqjxcKpWJeQF8waWPTArBewi2CQ',
+    '13umUoWwGb765EPzMUrMmYTcEjKfNJiNyCDwdqAvCMzteGzi',
     //Kusama AssetHub
     'EPk1wv1TvVFfsiG73YLuLAtGacfPmojyJKvmifobBzUTxFv',
     'JL21EURyqQxJk9inVW7iuexJNzzuV7HpZJVxQrY8BzwFiTJ',
@@ -75,17 +78,19 @@ export const NO_REWARD_COLLATORS = [
     'Cx9Uu2sxp3Xt1QBUbGQo7j3imTvjWJrqPF1PApDoy6UVkWP',
     'HRn3a4qLmv1ejBHvEbnjaiEWjt154iFi2Wde7bXKGUwGvtL',
     //Kusama People
-    'CbLd7BdUr8DqD4TciR1kH6w12bbHBCW9n2MHGCtbxq4U5ty',
+    //'CbLd7BdUr8DqD4TciR1kH6w12bbHBCW9n2MHGCtbxq4U5ty', BLD
     'CuLgnS17KwfweeoN9y59YrhDG4pekfiY8qxieDaVTcVCjuP',
-    'E8X4LxU9zEiNVAyM95ERDeomMmwwqn7RBCuRMEZCfgFm3J1',
+    //'E8X4LxU9zEiNVAyM95ERDeomMmwwqn7RBCuRMEZCfgFm3J1', Openbit Labs
     'HNrgbuMxf7VLwsMd6YjnNQM6fc7VVsaoNVaMYTCCfK3TRWJ',
     //Kusama Encointer
     'FG2C6WJWFdBNgKGDdS6oyhP1K9zHLNNzRtvAJNbmV1FybzD',
     'Fsn4ArZxAtESoGmwnLVbiKPsrgjFNmGLLdVapjVPCD78mRA',
     'G6z6FmKhw6dHJ8a5tetrzarbsVU4jF8LhoRFk211GryqAdw',
-    'GwDHvd1aToQRKa2b9rATV5igF99Bwr12Ko7jDZfPdNBTGT4'
-
+    'GwDHvd1aToQRKa2b9rATV5igF99Bwr12Ko7jDZfPdNBTGT4',
+    //RAVEN (exluded due to identity theft)
+    'FRt6xsJzQp8isxEXTRGVfymNaosKbWihPCqy7XFKd9v5y6X'
 ]
+
 //Curator's reward as a percentage of the final
 export const CURATOR_REWARD = 0.075
 
@@ -126,8 +131,8 @@ export enum CHAINS {
     POLKADOT_CORETIME = 10
 }
 
-export const PARACHAINS = 9;
-export const DOT_PARACHAINS = 4;
+export const PARACHAINS = 10;
+export const DOT_PARACHAINS = 5;
 export const KSM_PARACHAINS = 5;
 
 export enum RELAY{
@@ -136,6 +141,6 @@ export enum RELAY{
 }
 
 //Coordinator details
-export const COORDINATOR = ``;
-export const COORDINATOR_FEE = 1020;
+export const COORDINATOR = `HqRcfhH8VXMhuCk5JXe28WMgDDuW9MVDVNofe1nnTcefVZn`;
+export const COORDINATOR_FEE = 1080;
 export const COORDINATOR_CHAIN = RELAY.KUSAMA;
