@@ -137,5 +137,5 @@ export enum RELAY{
 
 //Coordinator details
 export const COORDINATOR = ``;
-export const COORDINATOR_FEE = 1080;
+export const COORDINATOR_FEE = 1020;
 export const COORDINATOR_CHAIN = RELAY.KUSAMA;
