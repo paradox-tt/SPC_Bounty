@@ -212,8 +212,9 @@ export class RewardCollector {
         const wsProviderRelay = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
         const api = await ApiPromise.create({ provider: wsProviderRelay, noInitWarn: true });
 
+        var parent_child_bounty_id = chain == Constants.RELAY.POLKADOT ? Constants.POLKADOT_PARENT_BOUNTY_ID : Constants.KUSAMA_PARENT_BOUNTY_ID;
         //Gets the current child bounty counter
-        var cb_count_codec = await api.query.childBounties.childBountyCount();
+        var cb_count_codec = await api.query.childBounties.parentChildBounties(parent_child_bounty_id);
         var cb_count = parseInt(cb_count_codec.toString());
 
         var parent_batch = [];
