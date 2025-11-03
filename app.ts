@@ -244,6 +244,9 @@ async function getEraInfo(start: number, end: number, api: ApiPromise, multibar:
 async function getEraInfoFromBlock(api: ApiPromise, block: number): Promise<EraBlock> {
     const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
 
+    console.log(block);
+    console.log(blockhash);
+
     const api_at = await api.at(blockhash);
     const active_era = await api_at.query.staking.activeEra();
     const index = active_era.unwrapOrDefault().index.toNumber();
