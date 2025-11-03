@@ -164,7 +164,7 @@ async function getLimits(month: number, year: number, parachain_api: ApiPromise,
     ]).then(result => {
         parachain_limit.start = result[0],
             parachain_limit.end = result[1],
-            relay_limit.start = result[2],
+            relay_limit.start = result[2]<11153382?11153382: result[2],
             relay_limit.end = result[3]
     });
 
@@ -242,10 +242,8 @@ async function getEraInfo(start: number, end: number, api: ApiPromise, multibar:
 
 
 async function getEraInfoFromBlock(api: ApiPromise, block: number): Promise<EraBlock> {
-    const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
 
-    console.log(block);
-    console.log(blockhash);
+    const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
 
     const api_at = await api.at(blockhash);
     const active_era = await api_at.query.staking.activeEra();
