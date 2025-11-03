@@ -24,7 +24,7 @@ export const PARACHAIN_BLOCK_TIME = 12;
 //export const KSM_WSS = `ws://192.168.250.175:9944`;
 //export const DOTWSS = `ws://192.168.250.176:9944`;
 
-export const KSM_WSS = `ws://192.168.250.175:9944`;
+export const KSM_WSS = `ws://192.168.250.179:9944`;
 export const DOT_WSS = `ws://192.168.250.176:9944`;
 
 export const RELAY_BLOCK_TIME = 6;
