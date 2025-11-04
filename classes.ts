@@ -155,7 +155,7 @@ export class RewardCollector {
             }
 
             //Calculate collator rewards
-            const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
+            const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b,0);
 
             const max = this.parachain_data.getMaxBlocks();
             const collators = this.parachain_data.getCollators();
