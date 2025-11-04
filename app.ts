@@ -6,6 +6,7 @@ import * as Constants from './constants'
 import { ParachainData, EraReward, RewardCollector } from './classes';
 import "@polkadot/api-augment";
 import { BN } from 'bn.js';
+import {RELAY, RELAY_BLOCK_TIME} from "./constants";
 
 main();
 
@@ -48,7 +49,7 @@ async function main() {
         const relay_api = await ApiPromise.create({ provider: wsProviderRelay, noInitWarn: true });
 
         console.log(`Determining block limits for Relay-chain and Parachain`);
-        const [parachain_limit, relay_limit] = await getLimits(month, year, parachain_api, relay_api);
+        const [parachain_limit, relay_limit] = await getLimits(month, year, parachain_api, relay_api, RELAY_CHAIN);
 
         console.log(`Parachain start: ${parachain_limit.start} end: ${parachain_limit.end}`);
         console.log(`Relay-chain start: ${relay_limit.start} end: ${relay_limit.end}`);
@@ -152,7 +153,7 @@ function getWSSDetails(chain: number): [string, string, string, Constants.RELAY]
     return [parachain_wss, relay_chain_wss, chain_name, relay_chain];
 }
 
-async function getLimits(month: number, year: number, parachain_api: ApiPromise, relay_api: ApiPromise) {
+async function getLimits(month: number, year: number, parachain_api: ApiPromise, relay_api: ApiPromise, relay_chain: RELAY) {
     var parachain_limit: BlockLimits = { start: 0, end: 0 };
     var relay_limit: BlockLimits = { start: 0, end: 0 };
 
@@ -164,9 +165,14 @@ async function getLimits(month: number, year: number, parachain_api: ApiPromise,
     ]).then(result => {
         parachain_limit.start = result[0],
             parachain_limit.end = result[1],
-            relay_limit.start = result[2]<11153382?11153382: result[2],
+            relay_limit.start = result[2],
             relay_limit.end = result[3]
     });
+
+    //Forced for October only
+    if (relay_chain==RELAY.KUSAMA){
+       relay_limit.start=11153382
+    }
 
     return [parachain_limit, relay_limit];
 }
