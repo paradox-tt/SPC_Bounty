@@ -13,7 +13,7 @@ export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
 export const DOT_PEOPLE_WSS = `ws://192.168.250.219:9944`;
 export const DOT_CORETIME_WSS = `ws://192.168.250.220:9944`;
 
-export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
+export const KSM_ASSETHUB_WSS = `wss://rpc-asset-hub-kusama.luckyfriday.io`;
 export const KSM_BRIDGEHUB_WSS = `ws://192.168.250.178:9944`;
 export const KSM_CORETIME_WSS = `ws://192.168.250.211:9944`;
 export const KSM_PEOPLE_WSS = `ws://192.168.250.215:9944`;
@@ -21,6 +21,7 @@ export const KSM_ENCOINTER_WSS = `ws://192.168.250.218:9944`;
 
 export const PARACHAIN_BLOCK_TIME = 12;
 
+//export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
 //export const KSM_WSS = `ws://192.168.250.175:9944`;
 //export const DOTWSS = `ws://192.168.250.176:9944`;
 
