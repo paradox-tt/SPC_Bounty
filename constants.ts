@@ -21,10 +21,11 @@ export const KSM_ENCOINTER_WSS = `ws://192.168.250.218:9944`;
 
 export const PARACHAIN_BLOCK_TIME = 12;
 
+//export const KSM_ASSETHUB_WSS = `ws://192.168.250.177:9944`;
 //export const KSM_WSS = `ws://192.168.250.175:9944`;
 //export const DOTWSS = `ws://192.168.250.176:9944`;
 
-export const KSM_WSS = `ws://192.168.250.175:9944`;
+export const KSM_WSS = `ws://192.168.250.177:9944`;
 export const DOT_WSS = `ws://192.168.250.176:9944`;
 
 export const RELAY_BLOCK_TIME = 6;
@@ -34,7 +35,7 @@ export const POLKADOT_PLANKS = 10000000000;
 
 export const NUM_DECIMALS = 4;
 
-export const PARALLEL_INCREMENTS = 10000;
+export const PARALLEL_INCREMENTS = 400000;
 
 //Collator reward in fiat
 export const COLLATOR_REWARD = 300.00;

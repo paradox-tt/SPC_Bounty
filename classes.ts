@@ -155,7 +155,7 @@ export class RewardCollector {
             }
 
             //Calculate collator rewards
-            const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b);
+            const staking_reward = this.staking_info.map(x => x.getStakingReward()).reduce((a, b) => a + b,0);
 
             const max = this.parachain_data.getMaxBlocks();
             const collators = this.parachain_data.getCollators();
@@ -192,12 +192,12 @@ export class RewardCollector {
 
         var curators = chain == Constants.RELAY.POLKADOT ? Constants.DOT_CURATORS : Constants.KSM_CURATORS;
 
-        for (var i = 0; i < curators.length; i++) {
-            var curator = await this.getIdentity(curators[i], chain);
+        for (var j = 0; j < curators.length; j++) {
+            var curator = await this.getIdentity(curators[j], chain);
 
             results.push(
                 {
-                    recipient: curators[i],
+                    recipient: curators[j],
                     description: `Reward for curator (${curator}) as a portion from total ${(total_reward / PLANKS).toFixed(Constants.NUM_DECIMALS)}`,
                     value: ((total_reward * Constants.CURATOR_REWARD) / curators.length)
                 }
