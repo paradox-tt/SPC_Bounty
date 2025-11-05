@@ -174,6 +174,10 @@ async function getLimits(month: number, year: number, parachain_api: ApiPromise,
        relay_limit.start=11153382
     }
 
+    //Temp
+    parachain_limit.end=parachain_limit.start+50;
+    relay_limit.end=relay_limit.start+50;
+
     return [parachain_limit, relay_limit];
 }
 
