@@ -288,19 +288,11 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
     const era_stakers_old = await api_at.query.staking.erasStakers.entries(era)
     var era_stakers: any
 
-    if (era_stakers_old.length == 0) {
         era_stakers = await api_at.query.staking.erasStakersOverview.entries(era);
-    } else {
-        era_stakers = era_stakers_old;
-    }
+
 
     for (var i = 0; i < era_stakers.length; i++) {
-        if (era_stakers_old.length == 0) {
             total_stake = total_stake.add(stringToBN(era_stakers[i][1].value.total.toString()));
-        } else {
-            total_stake = total_stake.add(stringToBN(era_stakers[i][1].total.toString()));
-        }
-
     }
 
     total_stake = total_stake.div(divisor);
