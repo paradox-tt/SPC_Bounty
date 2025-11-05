@@ -285,11 +285,10 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
     const reward = erasValidatorReward.unwrapOrDefault().div(divisor);
 
     var total_stake = new BN(0);
-    const era_stakers_old = await api_at.query.staking.erasStakers.entries(era)
+
     var era_stakers: any
 
-        era_stakers = await api_at.query.staking.erasStakersOverview.entries(era);
-
+    era_stakers = await api_at.query.staking.erasStakersOverview.entries(era);
 
     for (var i = 0; i < era_stakers.length; i++) {
             total_stake = total_stake.add(stringToBN(era_stakers[i][1].value.total.toString()));
