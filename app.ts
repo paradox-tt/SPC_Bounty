@@ -185,16 +185,22 @@ async function collectParachainData(parachain_limit: BlockLimits, multibar: any,
     var parachain_block_promises = [];
     var return_results: BlockInfo[] = [];
 
-    for (var i = parachain_limit.start; i < parachain_limit.end; i += Constants.PARALLEL_INCREMENTS) {
+    if((parachain_limit.end-parachain_limit.start)<Constants.PARALLEL_INCREMENTS)
+    {
+        parachain_block_promises.push(getPartialBlockInfo(parachain_limit.start, parachain_limit.end, parachain_wss, multibar));
+    }
+    else
+    {
+        for (var i = parachain_limit.start; i < parachain_limit.end; i += Constants.PARALLEL_INCREMENTS) {
 
+            var start = i;
+            var end = start + Constants.PARALLEL_INCREMENTS;
+            parachain_block_promises.push(getPartialBlockInfo(start, end, parachain_wss, multibar));
 
-        var start = i;
-        var end = start + Constants.PARALLEL_INCREMENTS;
-        parachain_block_promises.push(getPartialBlockInfo(start, end, parachain_wss, multibar));
-
-        //If the next increment exceeds the end, then initiate it here
-        if (end + Constants.PARALLEL_INCREMENTS > parachain_limit.end) {
-            parachain_block_promises.push(getPartialBlockInfo(end, parachain_limit.end, parachain_wss, multibar));
+            //If the next increment exceeds the end, then initiate it here
+            if (end + Constants.PARALLEL_INCREMENTS > parachain_limit.end) {
+                parachain_block_promises.push(getPartialBlockInfo(end, parachain_limit.end, parachain_wss, multibar));
+            }
         }
     }
 
