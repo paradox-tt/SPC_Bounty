@@ -174,6 +174,10 @@ async function getLimits(month: number, year: number, parachain_api: ApiPromise,
        relay_limit.start=11153382
     }
 
+    //Temp
+    //parachain_limit.end=parachain_limit.start+50;
+    //relay_limit.end=relay_limit.start+50;
+
     return [parachain_limit, relay_limit];
 }
 
@@ -181,16 +185,22 @@ async function collectParachainData(parachain_limit: BlockLimits, multibar: any,
     var parachain_block_promises = [];
     var return_results: BlockInfo[] = [];
 
-    for (var i = parachain_limit.start; i < parachain_limit.end; i += Constants.PARALLEL_INCREMENTS) {
+    if((parachain_limit.end-parachain_limit.start)<Constants.PARALLEL_INCREMENTS)
+    {
+        parachain_block_promises.push(getPartialBlockInfo(parachain_limit.start, parachain_limit.end, parachain_wss, multibar));
+    }
+    else
+    {
+        for (var i = parachain_limit.start; i < parachain_limit.end; i += Constants.PARALLEL_INCREMENTS) {
 
+            var start = i;
+            var end = start + Constants.PARALLEL_INCREMENTS;
+            parachain_block_promises.push(getPartialBlockInfo(start, end, parachain_wss, multibar));
 
-        var start = i;
-        var end = start + Constants.PARALLEL_INCREMENTS;
-        parachain_block_promises.push(getPartialBlockInfo(start, end, parachain_wss, multibar));
-
-        //If the next increment exceeds the end, then initiate it here
-        if (end + Constants.PARALLEL_INCREMENTS > parachain_limit.end) {
-            parachain_block_promises.push(getPartialBlockInfo(end, parachain_limit.end, parachain_wss, multibar));
+            //If the next increment exceeds the end, then initiate it here
+            if (end + Constants.PARALLEL_INCREMENTS > parachain_limit.end) {
+                parachain_block_promises.push(getPartialBlockInfo(end, parachain_limit.end, parachain_wss, multibar));
+            }
         }
     }
 
@@ -275,22 +285,13 @@ async function getRewardInfoFromBlock(api: ApiPromise, blockhash: string, era: n
     const reward = erasValidatorReward.unwrapOrDefault().div(divisor);
 
     var total_stake = new BN(0);
-    const era_stakers_old = await api_at.query.staking.erasStakers.entries(era)
+
     var era_stakers: any
 
-    if (era_stakers_old.length == 0) {
-        era_stakers = await api_at.query.staking.erasStakersOverview.entries(era);
-    } else {
-        era_stakers = era_stakers_old;
-    }
+    era_stakers = await api_at.query.staking.erasStakersOverview.entries(era);
 
     for (var i = 0; i < era_stakers.length; i++) {
-        if (era_stakers_old.length == 0) {
             total_stake = total_stake.add(stringToBN(era_stakers[i][1].value.total.toString()));
-        } else {
-            total_stake = total_stake.add(stringToBN(era_stakers[i][1].total.toString()));
-        }
-
     }
 
     total_stake = total_stake.div(divisor);
