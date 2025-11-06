@@ -461,18 +461,28 @@ async function getBlockInfo(api: ApiPromise, block: number): Promise<BlockInfo> 
 
     await api.isConnected;
     await api.isReady;
+    try{
+        const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
 
-    const blockhash: BlockHash = await api.rpc.chain.getBlockHash(block);
+        const api_at = await api.at(blockhash);
+        const time = await api_at.query.timestamp.now();
+        const header: HeaderExtended = await api.derive.chain.getHeader(blockhash);
 
-    const api_at = await api.at(blockhash);
-    const time = await api_at.query.timestamp.now();
-    const header: HeaderExtended = await api.derive.chain.getHeader(blockhash);
+        return {
+            hash: blockhash.toString(),
+            number: block,
+            date: new Date(time.toNumber()),
+            //If the author isn't known then use one of the unpayable addresses
+            author: header.author ? header.author.toString() : 'HRn3a4qLmv1ejBHvEbnjaiEWjt154iFi2Wde7bXKGUwGvtL'
+        }
+    }catch(err) {
+        return {
+            hash: "0x",
+            number: 1000,
+            date: new Date(),
+            author: 'HRn3a4qLmv1ejBHvEbnjaiEWjt154iFi2Wde7bXKGUwGvtL'
 
-    return {
-        hash: blockhash.toString(),
-        number: block,
-        date: new Date(time.toNumber()),
-        //If the author isn't known then use one of the unpayable addresses
-        author: header.author ? header.author.toString() : 'HRn3a4qLmv1ejBHvEbnjaiEWjt154iFi2Wde7bXKGUwGvtL'
+        }
     }
+
 }
