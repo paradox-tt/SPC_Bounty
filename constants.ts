@@ -7,7 +7,7 @@ export const DOT_BRIDGEHUB_WSS = `wss://sys.dotters.network/bridgehub-polkadot`;
 export const DOT_COLLECTIVES_WSS = `wss://sys.dotters.network/collectives-polkadot`;
 */
 
-export const DOT_ASSETHUB_WSS = `ws://192.168.250.179:9944`;
+export const DOT_ASSETHUB_WSS = `ws://192.168.250.226:9944`;
 export const DOT_BRIDGEHUB_WSS = `ws://192.168.250.180:9944`;
 export const DOT_COLLECTIVES_WSS = `ws://192.168.250.181:9944`;
 export const DOT_PEOPLE_WSS = `ws://192.168.250.219:9944`;
