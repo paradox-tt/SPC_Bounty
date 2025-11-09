@@ -209,7 +209,7 @@ export class RewardCollector {
 
     public async getExtrinsic(chain: Constants.RELAY): Promise<string> {
         const extrinsic_info = await this.getExtrinsicInfo(chain);
-        const wsProviderRelay = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_WSS : Constants.KSM_WSS);
+        const wsProviderRelay = new WsProvider(chain == Constants.RELAY.POLKADOT ? Constants.DOT_ASSETHUB_WSS : Constants.KSM_WSS);
         const api = await ApiPromise.create({ provider: wsProviderRelay, noInitWarn: true });
 
         var parent_child_bounty_id = chain == Constants.RELAY.POLKADOT ? Constants.POLKADOT_PARENT_BOUNTY_ID : Constants.KUSAMA_PARENT_BOUNTY_ID;
